@@ -1,0 +1,85 @@
+#!/usr/bin/env node
+// run 'node camke -h" to print help message
+const path = require("path");
+const CommandLine = require('./CommandLine');
+const CmakeBuild = require("./CMake");
+const Platform = require("./Platform");
+
+const optionDeclarations = [
+    {
+        name: "output",
+        shortName: "o",
+        type: "string",
+        description: "Specifies the output path."
+    },
+    {
+        name: "platform",
+        shortName: "p",
+        type: "string",
+        description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\"]."
+    },
+    {
+        name: "incremental",
+        shortName: "i",
+        type: "boolean",
+        description: "Uses incremental build. The build directory will not be removed after the building finished."
+    },
+    {
+        name: "debug",
+        shortName: "d",
+        type: "boolean",
+        description: "Builds with debug mode enabled."
+    },
+    {
+        name: "verbose",
+        shortName: "v",
+        type: "boolean",
+        description: "Prints message in verbose mode."
+    }
+];
+
+
+function printHelp(cmd) {
+    let output = "";
+    output += "Syntax:   " + cmd + " [cmakeTarget] [cmakeTarget]... [options]\n";
+    output += "Examples: " + cmd + " pag -p ios -o ./out\n";
+    output += "Examples: " + cmd + " pag pag-ss --debug\n";
+    output += "Examples: " + cmd + " pag -DPAG_BUILD_SHARED=ON -p mac --verbose\n";
+    CommandLine.printOptions(optionDeclarations);
+    process.stdout.write(output);
+}
+
+let args = process.argv;
+let cmd = "node " + path.basename(args[1]);
+args = args.slice(2);
+let cmakeArgs = [];
+let cmdArgs = [];
+for (let arg of args) {
+    if (arg.indexOf("-D") === 0) {
+        cmakeArgs.push(arg);
+    } else {
+        cmdArgs.push(arg);
+    }
+}
+let options = CommandLine.parse(cmdArgs, optionDeclarations);
+if (!options.targets || options.targets.length === 0) {
+    options.help = true;
+}
+if (options.help) {
+    printHelp(cmd);
+    return;
+}
+if (!options.debug) {
+    if (process.env["VENDOR_BUILD_TYPE"] === "Debug") {
+        options.debug = true;
+    }
+}
+let platform = Platform.Create(options.platform, options.debug, options.verbose);
+let cmake = CmakeBuild.Create(platform);
+let sourcePath = process.cwd();
+let outPath = options.output ? path.resolve(options.output) : path.join(sourcePath, "out");
+let cmakeOptions = {};
+cmakeOptions.targets = options.targets;
+cmakeOptions.arguments = cmakeArgs;
+cmakeOptions.incremental = options.incremental;
+cmake.build(sourcePath, outPath, cmakeOptions);

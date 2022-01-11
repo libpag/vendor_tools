@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+const path = require("path");
+const CommandLine = require('./CommandLine');
+const Vendor = require('./Vendor');
+
+const optionDeclarations = [
+    {
+        name: "help",
+        shortName: "h",
+        type: "boolean",
+        description: "Prints help message."
+    },
+    {
+        name: "platform",
+        shortName: "p",
+        type: "string",
+        description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\", \"web\"]."
+    },
+    {
+        name: "output",
+        shortName: "o",
+        type: "string",
+        description: "Publishing all vendor libraries to specified output directory. All shared libraries are copied and all static libraries are merged."
+    },
+    {
+        name: "fatLib",
+        shortName: "f",
+        type: "boolean",
+        description: "Merges all archs of the output static libraries into one fat library if current platform supports it."
+    },
+    {
+        name: "debug",
+        shortName: "d",
+        type: "boolean",
+        description: "Builds with debug mode enabled."
+    },
+    {
+        name: "verbose",
+        shortName: "v",
+        type: "boolean",
+        description: "Prints message in verbose mode."
+    }
+];
+
+function printHelp(cmd) {
+    let output = "";
+    output += "Syntax:   " + cmd + " [vendorName] [vendorName]... [options]\n";
+    output += "Examples: " + cmd + " libpng libwebp\n";
+    output += "Examples: " + cmd + " --debug\n";
+    output += "Examples: " + cmd + " -p mac --verbose\n";
+    CommandLine.printOptions(optionDeclarations);
+    process.stdout.write(output);
+}
+
+let args = process.argv;
+let options = CommandLine.parse(args.slice(2), optionDeclarations);
+if (options.help) {
+    let cmd = "node " + path.basename(args[1]);
+    printHelp(cmd);
+    return;
+}
+if (!options.debug) {
+    if (process.env["VENDOR_BUILD_TYPE"] === "Debug") {
+        options.debug = true;
+    }
+}
+let vendor = new Vendor("vendor.json", options.platform, options.debug, options.verbose);
+vendor.buildAll(options.targets, options.output, options.fatLib);

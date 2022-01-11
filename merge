@@ -1,0 +1,56 @@
+#!/usr/bin/env node
+// run 'node mergelib -h" to print help message
+const CommandLine = require('./CommandLine');
+const Platform = require('./Platform');
+const LibraryTool = require("./LibraryTool");
+
+const optionDeclarations = [
+    {
+        name: "help",
+        shortName: "h",
+        type: "boolean",
+        description: "Prints help message."
+    },
+    {
+        name: "platform",
+        shortName: "p",
+        type: "string",
+        description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\"]."
+    },
+    {
+        name: "arch",
+        shortName: "a",
+        type: "string",
+        description: "Specifies the arch of current platform. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\"]."
+    },
+    {
+        name: "output",
+        shortName: "o",
+        type: "string",
+        description: "Merges all static libraries into specified output library file."
+    },
+    {
+        name: "verbose",
+        shortName: "v",
+        type: "boolean",
+        description: "Prints message in verbose mode."
+    }
+];
+
+function printHelp(cmd) {
+    let output = "";
+    output += "Syntax:   node merge [libraryFile] [libraryFile]... [options]\n";
+    output += "Examples: " + cmd + " libpng.a libwebp.a -o libvendor.a -p mac -a x64\n";
+    CommandLine.printOptions(optionDeclarations);
+    process.stdout.write(output);
+}
+
+let args = process.argv;
+let options = CommandLine.parse(args.slice(2), optionDeclarations);
+if (options.help) {
+    printHelp();
+    process.exit(0);
+}
+let platform = Platform.Create(options.platform, false, options.verbose);
+let libraryTool = LibraryTool.Create(platform);
+libraryTool.mergeLibraries(options.targets, options.output, options.arch);
