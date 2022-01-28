@@ -236,7 +236,8 @@ class IOSCMake extends CMake {
         let args = [
             "-DCMAKE_TOOLCHAIN_FILE=" + this.toolchain,
             "-DPLATFORM=" + Platform,
-            "-DDEPLOYMENT_TARGET=9.0"
+            "-DDEPLOYMENT_TARGET=9.0",
+            "-DENABLE_ARC=FALSE"
         ];
         if (arch === "arm") {
             args.push("-DARCHS=armv7");
@@ -262,11 +263,23 @@ class WinCMake extends CMake {
 }
 
 class MacCMake extends CMake {
+    constructor(platform) {
+        super(platform);
+        this.toolchain = path.resolve(__dirname, "ios.toolchain.cmake");
+    }
+
     getPlatformArgs(arch) {
-        let args = ["-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"];
+        let args = [
+            "-DCMAKE_TOOLCHAIN_FILE=" + this.toolchain,
+            "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13",
+            "-DENABLE_BITCODE=FALSE",
+            "-DENABLE_VISIBILITY=TRUE",
+            "-DENABLE_ARC=FALSE"
+        ];
         if (arch === "x64") {
-            args.push("-DCMAKE_SYSTEM_PROCESSOR=x86_64");
-            args.push("-DCMAKE_OSX_ARCHITECTURES=x86_64");
+            args.push("-DPLATFORM=MAC");
+        } else if (arch === "arm64") {
+            args.push("-DPLATFORM=MAC_ARM64");
         }
         return args;
     }

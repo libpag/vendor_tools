@@ -15,6 +15,13 @@ class Platform {
         if (name === "ios") {
             return new Platform(name, ["arm", "arm64", "x64"], debug, verbose);
         }
+        if (name === "mac") {
+            let cpuModel = os.cpus()[0].model;
+            if (cpuModel.toLowerCase().indexOf("intel") == -1) {
+                return new Platform(name, ["arm64", "x64"], debug, verbose);
+            }
+            return new Platform(name, ["x64"], debug, verbose);
+        }
         if (name === "web") {
             return new WebPlatform(name, ["wasm"], debug, verbose);
         }
