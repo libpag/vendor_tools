@@ -225,22 +225,20 @@ class IOSCMake extends CMake {
     }
 
     getPlatformArgs(arch) {
-        let Platform;
-        if (arch === "x64") {
-            Platform = "SIMULATOR64";
-        } else if (arch === "arm") {
-            Platform = "OS";
-        } else {
-            Platform = "OS64";
-        }
         let args = [
             "-DCMAKE_TOOLCHAIN_FILE=" + this.toolchain,
-            "-DPLATFORM=" + Platform,
             "-DDEPLOYMENT_TARGET=9.0",
             "-DENABLE_ARC=FALSE"
         ];
-        if (arch === "arm") {
+        if (arch === "x64") {
+            args.push("-DPLATFORM=SIMULATOR64");
+        } else if (arch === "arm64-simulator") {
+            args.push("-DPLATFORM=SIMULATORARM64");
+        } else if (arch === "arm") {
+            args.push("-DPLATFORM=OS");
             args.push("-DARCHS=armv7");
+        } else {
+            args.push("-DPLATFORM=OS64");
         }
         return args;
     }

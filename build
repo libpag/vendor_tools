@@ -23,10 +23,10 @@ const optionDeclarations = [
         description: "Publishing all vendor libraries to specified output directory. All shared libraries are copied and all static libraries are merged."
     },
     {
-        name: "fatLib",
-        shortName: "f",
+        name: "xcframework",
+        shortName: "x",
         type: "boolean",
-        description: "Merges all archs of the output static libraries into one fat library if current platform supports it."
+        description: "Merges all archs of the output static libraries into one xcframework if current platform supports it."
     },
     {
         name: "debug",
@@ -65,4 +65,4 @@ if (!options.debug) {
     }
 }
 let vendor = new Vendor("vendor.json", options.platform, options.debug, options.verbose);
-vendor.buildAll(options.targets, options.output, options.fatLib);
+vendor.buildAll(options.targets, options.output, options.xcframework);

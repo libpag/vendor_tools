@@ -4,7 +4,7 @@ const Utils = require("./Utils");
 const Platform = require("./Platform");
 const LibraryTool = require("./LibraryTool");
 const fs = require("fs");
-const Version = "1.0.1"
+const Version = "1.0.2"
 
 function updateHash(vendor, platform) {
     if (vendor.hash) {
@@ -173,7 +173,7 @@ class Vendor {
         this.vendors = parseVendors(data, projectPath, this.platform);
     }
 
-    buildAll(vendorNames, outPath, fatLibrary) {
+    buildAll(vendorNames, outPath, xcframework) {
         if (!Array.isArray(vendorNames) || vendorNames.length === 0) {
             vendorNames = Object.keys(this.vendors);
         }
@@ -205,7 +205,7 @@ class Vendor {
             }
             Utils.log("Publishing vendor libraries: [" + libraryNames.join(",") + "] into " + outPath);
             Utils.deletePath(outPath);
-            this.publishLibraries(libraryPaths, outPath, fatLibrary)
+            this.publishLibraries(libraryPaths, outPath, xcframework)
             Utils.writeFile(hashFile, currentHash);
         }
         this.clearVendorOut();
@@ -267,9 +267,9 @@ class Vendor {
         }
     }
 
-    publishLibraries(libraryPaths, outPath, fatLibrary) {
+    publishLibraries(libraryPaths, outPath, xcframework) {
         let libraryTool = LibraryTool.Create(this.platform);
-        let staticLibraries = [];
+        let staticLibraries = {};
         for (let arch of this.platform.archs) {
             let libraries = [];
             for (let libraryPath of libraryPaths) {
@@ -289,36 +289,31 @@ class Vendor {
                 } else {
                     Utils.copyPath(libraries[0], libraryFile);
                 }
-                staticLibraries.push(libraryFile);
+                staticLibraries[arch] = libraryFile;
             }
         }
-        if (!fatLibrary) {
+        if (!xcframework) {
             return;
         }
-        if (staticLibraries.length > 1) {
-            let libraryName = path.basename(staticLibraries[0]);
-            let libraryFile = path.join(outPath, libraryName);
-            let result = libraryTool.createFatLibrary(staticLibraries, libraryFile);
-            if (result) {
-                for (let library of staticLibraries) {
-                    Utils.deletePath(path.dirname(library));
-                }
-            }
+        let firstArch = this.platform.archs[0];
+        let firstLibrary = staticLibraries[firstArch];
+        if (firstLibrary) {
+            let libraryName = path.parse(firstLibrary).name;
+            let frameworkFile = path.join(outPath, libraryName + ".xcframework");
+            libraryTool.createXCFramework(staticLibraries, frameworkFile);
         }
-        if (this.platform.archs.length <= 1) {
-            return;
-        }
+
         for (let libraryPath of libraryPaths) {
             let firstArchPath = path.join(libraryPath, this.platform.archs[0]);
             let sharedLibraries = LibraryTool.findSharedLibraries(firstArchPath);
             for (let sharedLibrary of sharedLibraries) {
                 let libraryName = path.basename(sharedLibrary);
-                let libraryFile = path.join(outPath, libraryName);
+                let frameworkFile = path.join(outPath, path.parse(sharedLibrary).name + ".xcframework");
                 let libraries = [];
                 for (let arch of this.platform.archs) {
-                    libraries.push(path.join(libraryPath, arch, libraryName));
+                    libraries[arch] = path.join(libraryPath, arch, libraryName);
                 }
-                libraryTool.createFatLibrary(libraries, libraryFile);
+                libraryTool.createXCFramework(libraries, frameworkFile);
             }
         }
     }

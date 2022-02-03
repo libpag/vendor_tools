@@ -25,8 +25,11 @@ function findFiles(dir, extensions) {
 
 class LibraryTool {
     static Create(platform) {
-        if (platform.name === "ios" || platform.name === "mac") {
-            return new AppleLibraryTool(platform);
+        if (platform.name === "ios") {
+            return new IOSLibraryTool(platform);
+        }
+        if (platform.name === "mac") {
+            return new MacLibraryTool(platform);
         }
         if (platform.name === "android") {
             return new AndroidLibraryTool(platform);
@@ -72,7 +75,7 @@ class LibraryTool {
     mergeLibraries(libraries, output, arch) {
     }
 
-    createFatLibrary(libraries, output) {
+    createXCFramework(libraries, output) {
         return false;
     }
 }
@@ -154,19 +157,6 @@ class ARMergeLibraryTool extends LibraryTool {
 }
 
 class AppleLibraryTool extends LibraryTool {
-    createFatLibrary(libraries, output) {
-        if (libraries.length > 1) {
-            let outPath = path.dirname(output);
-            let libraryPaths = [];
-            for (let library of libraries) {
-                libraryPaths.push(Utils.escapeSpace(library));
-            }
-            Utils.exec("lipo -create " + libraryPaths.join(" ") + " -o " + Utils.escapeSpace(output), outPath, !this.platform.verbose);
-            return true;
-        }
-        return false;
-    }
-
     mergeLibraries(libraries, output, arch) {
         let list = [];
         for (let library of libraries) {
@@ -179,6 +169,93 @@ class AppleLibraryTool extends LibraryTool {
         Utils.exec(cmd, process.cwd(), true);
     }
 
+    createFatLibrary(libraries, output) {
+        if (libraries.length === 0) {
+            return false;
+        }
+        if (libraries.length === 1) {
+            Utils.copyPath(libraries[0], output);
+        } else {
+            let outPath = path.dirname(output);
+            Utils.createDirectory(outPath);
+            let libraryPaths = [];
+            for (let library of libraries) {
+                libraryPaths.push(Utils.escapeSpace(library));
+            }
+            Utils.exec("lipo -create " + libraryPaths.join(" ") + " -o " + Utils.escapeSpace(output), outPath, !this.platform.verbose);
+        }
+        for (let library of libraries) {
+            Utils.deletePath(library);
+            Utils.deleteEmptyDir(path.dirname(library));
+        }
+        return true;
+    }
+
+}
+
+class IOSLibraryTool extends AppleLibraryTool {
+    createXCFramework(libraries, output) {
+        let iosLibraries = [];
+        let simulatorLibraries = [];
+        let library = "";
+        for (let arch of this.platform.archs) {
+            library = libraries[arch];
+            if (arch === "arm" || arch === "arm64") {
+                iosLibraries.push(library);
+            } else {
+                simulatorLibraries.push(library);
+            }
+        }
+        if (iosLibraries.length === 0 && simulatorLibraries.length === 0) {
+            return false;
+        }
+
+        let libraryName = path.basename(library);
+        let libraryDir = path.dirname(library);
+        let iosFatLibrary = path.join(path.dirname(libraryDir), "ios", libraryName);
+        this.createFatLibrary(iosLibraries, iosFatLibrary);
+        let simulatorFatLibrary = path.join(path.dirname(libraryDir), "simulator", libraryName);
+        this.createFatLibrary(simulatorLibraries, simulatorFatLibrary);
+        let outPath = path.dirname(output);
+        Utils.createDirectory(outPath);
+        let libraryInput = "";
+        if (iosLibraries.length > 0) {
+            libraryInput += " -library " + Utils.escapeSpace(iosFatLibrary);
+        }
+        if (simulatorLibraries.length > 0) {
+            libraryInput += " -library " + Utils.escapeSpace(simulatorFatLibrary);
+        }
+        Utils.exec("xcodebuild -create-xcframework" + libraryInput +
+            " -output " + Utils.escapeSpace(output), outPath, !this.platform.verbose);
+        Utils.deletePath(path.dirname(iosFatLibrary));
+        Utils.deletePath(path.dirname(simulatorFatLibrary));
+        return true;
+    }
+}
+
+class MacLibraryTool extends AppleLibraryTool {
+    createXCFramework(libraries, output) {
+        let libraryList = [];
+        let library = "";
+        for (let arch of this.platform.archs) {
+            library = libraries[arch];
+            libraryList.push(library);
+        }
+        if (libraryList.length === 0) {
+            return false;
+        }
+        let libraryName = path.basename(library);
+        let libraryDir = path.dirname(library);
+        let fatLibrary = path.join(path.dirname(libraryDir), "mac", libraryName);
+        this.createFatLibrary(libraryList, fatLibrary);
+
+        let outPath = path.dirname(output);
+        Utils.createDirectory(outPath);
+        Utils.exec("xcodebuild -create-xcframework -library " + Utils.escapeSpace(fatLibrary) +
+            " -output " + Utils.escapeSpace(output), outPath, !this.platform.verbose);
+        Utils.deletePath(path.dirname(fatLibrary));
+        return true;
+    }
 }
 
 class AndroidLibraryTool extends ARMergeLibraryTool {
