@@ -6,8 +6,6 @@ const Utils = require("./Utils");
 
 class Platform {
     static Create(name, debug, verbose) {
-        let cpuModel = os.cpus()[0].model;
-        let isAppleSilicon = cpuModel.toLowerCase().indexOf("apple") != -1;
         if (name === "android") {
             return new AndroidPlatform(debug, verbose);
         }
@@ -15,16 +13,10 @@ class Platform {
             return new WinPlatform(debug, verbose);
         }
         if (name === "ios") {
-            if (isAppleSilicon) {
-                return new Platform(name, ["arm", "arm64", "x64", "arm64-simulator"], debug, verbose);
-            }
-            return new Platform(name, ["arm", "arm64", "x64"], debug, verbose);
+            return new Platform(name, ["arm", "arm64", "x64", "arm64-simulator"], debug, verbose);
         }
         if (name === "mac") {
-            if (isAppleSilicon) {
-                return new Platform(name, ["arm64", "x64"], debug, verbose);
-            }
-            return new Platform(name, ["x64"], debug, verbose);
+            return new Platform(name, ["arm64", "x64"], debug, verbose);
         }
         if (name === "web") {
             return new WebPlatform(name, ["wasm"], debug, verbose);

@@ -4,7 +4,7 @@ const Utils = require("./Utils");
 const Platform = require("./Platform");
 const LibraryTool = require("./LibraryTool");
 const fs = require("fs");
-const Version = "1.0.2"
+const Version = "1.0.3"
 
 function updateHash(vendor, platform) {
     if (vendor.hash) {
