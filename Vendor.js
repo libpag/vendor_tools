@@ -178,14 +178,11 @@ class Vendor {
             vendorNames = Object.keys(this.vendors);
         }
         let libraryPaths = [];
-        let libraryNames = [];
         for (let vendorName of vendorNames) {
             let list = this.buildVendor(vendorName);
             for (let libraryPath of list) {
                 if (libraryPaths.indexOf(libraryPath) === -1) {
                     libraryPaths.push(libraryPath);
-                    let libraryName = path.basename(path.dirname(libraryPath));
-                    libraryNames.push(libraryName);
                 }
             }
         }
@@ -203,7 +200,7 @@ class Vendor {
             if (currentHash === cachedHash) {
                 return;
             }
-            Utils.log("Publishing vendor libraries: [" + libraryNames.join(",") + "] into " + outPath);
+            Utils.log("Publishing vendor libraries: [" + vendorNames.join(",") + "] into " + outPath);
             Utils.deletePath(outPath);
             this.publishLibraries(libraryPaths, outPath, xcframework)
             Utils.writeFile(hashFile, currentHash);
