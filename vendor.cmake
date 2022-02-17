@@ -64,7 +64,11 @@ set(VENDOR_TOOLS_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 # merge_libraries_into(target [staticLibraries...])
 function(merge_libraries_into target)
-    list(JOIN ARGN "\" \"" STATIC_LIBRARIES)
+    if (ARGC GREATER 2)
+        list(JOIN ARGN "\" \"" STATIC_LIBRARIES)
+    else ()
+        list(APPEND STATIC_LIBRARIES ${ARGN})
+    endif ()
     separate_arguments(STATIC_LIBRARIES_LIST NATIVE_COMMAND "\"${STATIC_LIBRARIES}\"")
     add_custom_command(TARGET ${target} POST_BUILD
             COMMAND node ${VENDOR_TOOLS_DIR}/merge -p ${PLATFORM} -a ${ARCH} -v
@@ -91,6 +95,10 @@ function(add_vendor_target targetName)
         endif ()
     endforeach ()
 
+    if (NOT sharedVendors AND NOT staticVendors)
+        return()
+    endif ()
+
     foreach (sharedVendor ${sharedVendors})
         file(GLOB SHARED_LIBS third_party/out/${sharedVendor}/${LIBRARY_ENTRY}/*${CMAKE_SHARED_LIBRARY_SUFFIX})
         if (NOT SHARED_LIBS)
@@ -105,7 +113,9 @@ function(add_vendor_target targetName)
     string(TOLOWER ${targetName} name)
     set(VENDOR_OUTPUT_NAME ${name}-vendor)
     set(VENDOR_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${VENDOR_OUTPUT_NAME}.dir)
-    set(VENDOR_OUTPUT_LIB ${VENDOR_OUTPUT_DIR}/${ARCH}/lib${VENDOR_OUTPUT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX})
+    if (staticVendors)
+        set(VENDOR_OUTPUT_LIB ${VENDOR_OUTPUT_DIR}/${ARCH}/lib${VENDOR_OUTPUT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX})
+    endif ()
     # Build the vendor libraries of current platform and merge them into a single static library.
     add_custom_command(OUTPUT ${VENDOR_OUTPUT_NAME}
             COMMAND node ${VENDOR_TOOLS_DIR}/build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
