@@ -32,6 +32,46 @@ function CopyIncludes(sourcePath, buildPath, outPath, includes) {
     }
 }
 
+function transformCMakeLists(configFile, platform) {
+    let configText = Utils.readFile(configFile);
+    let oldConfigText = configText;
+    if (configText.indexOf("install(") !== -1 || configText.indexOf("INSTALL(") !== -1) {
+        // disable all install()
+        const macro = "macro (install)\nendmacro ()\n";
+        if (configText.indexOf(macro) === 0) {
+            oldConfigText = configText.substring(macro.length);
+        } else {
+            configText = macro + configText;
+        }
+    }
+    if (platform === "web") {
+        const share = "# Disable error for the web platform.\nSET_PROPERTY(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS true)\n";
+        let index = oldConfigText.indexOf(share);
+        if (index !== -1) {
+            oldConfigText = oldConfigText.substring(0, index) + oldConfigText.substring(index + share.length);
+        } else {
+            let keys = ["project(", "project (", "PROJECT(", "PROJECT ("];
+            for (const key of keys) {
+                index = configText.indexOf(key);
+                if (index !== -1) {
+                    break;
+                }
+            }
+            if (index !== -1) {
+                let tailText = configText.substring(index);
+                configText = configText.substring(0, index);
+                index = tailText.indexOf("\n");
+                configText += tailText.substring(0, index + 1) + share + tailText.substring(index + 1);
+            }
+        }
+    }
+    if (configText === oldConfigText) {
+        return "";
+    }
+    Utils.writeFile(configFile, configText);
+    return oldConfigText;
+}
+
 class CMake {
     static Create(platform) {
         if (platform.name === "ios") {
@@ -66,18 +106,7 @@ class CMake {
             Utils.createDirectory(buildPath);
         }
         let cmakeConfigFile = path.resolve(sourcePath, "CMakeLists.txt");
-        let oldCMakeConfig = Utils.readFile(cmakeConfigFile);
-        if (oldCMakeConfig.indexOf("install(") !== -1) {
-            // disable all install()
-            const macro = "macro (install)\nendmacro ()\n";
-            if (oldCMakeConfig.indexOf(macro) === 0) {
-                oldCMakeConfig = oldCMakeConfig.substr(macro.length);
-            } else {
-                Utils.writeFile(cmakeConfigFile, "macro (install)\nendmacro ()\n" + oldCMakeConfig);
-            }
-        } else {
-            oldCMakeConfig = "";
-        }
+        let oldCMakeConfig = transformCMakeLists(cmakeConfigFile, this.platform.name);
         let libraries = {};
         let archs = this.platform.archs;
         for (let arch of archs) {
