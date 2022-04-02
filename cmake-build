@@ -19,6 +19,12 @@ const optionDeclarations = [
         description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\"]."
     },
     {
+        name: "arch",
+        shortName: "a",
+        type: "string",
+        description: "Builds the specified arch only."
+    },
+    {
         name: "incremental",
         shortName: "i",
         type: "boolean",
@@ -75,6 +81,9 @@ if (!options.debug) {
     }
 }
 let platform = Platform.Create(options.platform, options.debug, options.verbose);
+if (options.arch) {
+    platform.archs = [options.arch];
+}
 let cmake = CmakeBuild.Create(platform);
 let sourcePath = process.cwd();
 let outPath = options.output ? path.resolve(options.output) : path.join(sourcePath, "out");
