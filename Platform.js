@@ -73,7 +73,7 @@ function FindNDK() {
     if (fs.existsSync(path.join(NDK_HOME, "ndk-build"))) {
         return NDK_HOME;
     }
-    let NDK_ROOT = path.join(NDK_HOME, "ndk");
+    let NDK_ROOT = path.join(ANDROID_HOME, "ndk");
     if (fs.existsSync(NDK_ROOT)) {
         let files = fs.readdirSync(NDK_ROOT);
         for (let fileName of files) {
