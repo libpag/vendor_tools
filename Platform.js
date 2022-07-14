@@ -132,7 +132,7 @@ function findMSVCNativeToolCommand() {
 
 class WinPlatform extends Platform {
     constructor(debug, verbose) {
-        super("win", ["x86", "x64"], debug, verbose);
+        super("win", ["x64", "x86"], debug, verbose);
         let msvcTool = findMSVCNativeToolCommand();
         let buildToolPath = childProcess.execSync("\"" + msvcTool + "\"").toString();
         let lines = buildToolPath.split("\r\n");
