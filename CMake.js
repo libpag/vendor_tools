@@ -285,7 +285,10 @@ class WinCMake extends CMake {
     }
 
     getPlatformArgs(arch) {
-        return ["-DCMAKE_C_FLAGS_RELEASE=/Zc:inline"]
+        return [
+            "-DCMAKE_C_FLAGS_RELEASE=/Zc:inline",
+            "-DCMAKE_PROJECT_INCLUDE=" + path.resolve(__dirname, "win.msvc.cmake")
+        ];
     }
 }
 
