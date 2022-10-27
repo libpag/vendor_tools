@@ -138,6 +138,9 @@ class CMake {
         let verbose = this.platform.verbose;
         let verboseArg = verbose ? " -DCMAKE_VERBOSE_MAKEFILE=ON" : "";
         let cmake = this.getCMake(arch);
+        if (arch === "x64") {
+            cmake = cmake + " -DCMAKE_POSITION_INDEPENDENT_CODE=ON "
+        }
         let cmd = cmake + " -G Ninja -DCMAKE_BUILD_TYPE=" + buildType + verboseArg + " " +
             cmakeArgs.join(" ") + " " + Utils.escapeSpace(sourcePath);
         Utils.log(cmd);
