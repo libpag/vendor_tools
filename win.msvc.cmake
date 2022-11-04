@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 
-# use MT(d) or MD(d)
-# if you want to build MD(d), delete the last "DLL" word
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 if (MSVC)
+    # use MT(d) or MD(d)
+    # if you want to build MD(d), delete the last "DLL" word
     message("MSVC build")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     # MP: # multi-processor compilation
     # Z7: pdb Z7 format
     set(MSVC_BUILD_FLAGS /MP /Z7)
