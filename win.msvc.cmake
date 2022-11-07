@@ -11,3 +11,6 @@ if (MSVC)
     add_compile_options("$<$<COMPILE_LANGUAGE:C>:${MSVC_BUILD_FLAGS}>")
     add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${MSVC_BUILD_FLAGS}>")
 endif ()
+
+# open arch:avx
+add_compile_options(/arch:AVX)
