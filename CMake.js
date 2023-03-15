@@ -89,6 +89,9 @@ class CMake {
         if (platform.name === "web") {
             return new WebCMake(platform);
         }
+        if (platform.name === "linux") {
+            return new LinuxCMake(platform);
+        }
         return new CMake(platform);
     }
 
@@ -138,9 +141,6 @@ class CMake {
         let verbose = this.platform.verbose;
         let verboseArg = verbose ? " -DCMAKE_VERBOSE_MAKEFILE=ON" : "";
         let cmake = this.getCMake(arch);
-        if (arch === "x64") {
-            cmake = cmake + " -DCMAKE_POSITION_INDEPENDENT_CODE=ON "
-        }
         let cmd = cmake + " -G Ninja -DCMAKE_BUILD_TYPE=" + buildType + verboseArg + " " +
             cmakeArgs.join(" ") + " " + Utils.escapeSpace(sourcePath);
         Utils.log(cmd);
@@ -322,6 +322,14 @@ class WebCMake extends CMake {
     getCMake(arch) {
         let cmake = super.getCMake(arch);
         return cmake + " cmake";
+    }
+}
+
+class LinuxCMake extends CMake {
+    getPlatformArgs(arch) {
+        return [
+            "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
+        ];
     }
 }
 
