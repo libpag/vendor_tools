@@ -128,4 +128,4 @@ function(add_vendor_target targetName)
 endfunction()
 
 # Synchronizes the third-party dependencies of current platform.
-execute_process(COMMAND depsync ${PLATFORM} WORKING_DIRECTORY ${VENDOR_TOOLS_DIR}/..)
+execute_process(COMMAND depsync --non-recursive ${PLATFORM} WORKING_DIRECTORY ${VENDOR_TOOLS_DIR}/..)
