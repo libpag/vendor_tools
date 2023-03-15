@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.17)
 
 # use clang toolchain
-message("skcms toolchain")
 set(CMAKE_CXX_COMPILER Clang++)
 set(CMAKE_C_COMPILER Clang)
 set(CLANG_BUILD_FLAGS "${CLANG_BUILD_FLAGS} -Zi")
