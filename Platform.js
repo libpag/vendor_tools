@@ -98,7 +98,7 @@ class AndroidPlatform extends Platform {
 
     getCommandPath(cmd, arch) {
         let prefix = arch === "arm64" ? "aarch64-linux-android-" : "arm-linux-androideabi-";
-        let cmdPath = path.join(this.ndkHome, "toolchains/llvm/prebuilt/darwin-x86_64/bin/" + prefix + cmd);
+        let cmdPath = path.join(this.ndkHome, "toolchains/llvm/prebuilt/" + os.platform() + "-x86_64/bin/" + prefix + cmd);
         if (fs.existsSync(cmdPath)) {
             return cmdPath;
         }
