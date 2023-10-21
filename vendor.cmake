@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 if (EMSCRIPTEN)
     set(ARCH wasm)
 elseif (ANDROID OR IOS)
@@ -103,7 +105,7 @@ function(add_vendor_target targetName)
         if (NOT SHARED_LIBS)
             # build shared libraries immediately if not exist, otherwise the rpath will not be set properly at the first time.
             execute_process(COMMAND node ${VENDOR_TOOLS_DIR}/build ${sharedVendor} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG}
-                    WORKING_DIRECTORY ${VENDOR_TOOLS_DIR}/..)
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
         endif ()
         file(GLOB SHARED_LIBS third_party/out/${sharedVendor}/${LIBRARY_ENTRY}/*${CMAKE_SHARED_LIBRARY_SUFFIX})
         list(APPEND VENDOR_SHARED_LIBRARIES ${SHARED_LIBS})
@@ -118,7 +120,7 @@ function(add_vendor_target targetName)
     # Build the vendor libraries of current platform and merge them into a single static library.
     add_custom_command(OUTPUT ${VENDOR_OUTPUT_NAME}
             COMMAND node ${VENDOR_TOOLS_DIR}/build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
-            WORKING_DIRECTORY ${VENDOR_TOOLS_DIR}/..
+            WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
             BYPRODUCTS ${VENDOR_OUTPUT_LIB} ${VENDOR_SHARED_LIBRARIES}
             VERBATIM USES_TERMINAL)
     # set the output variables:
@@ -128,4 +130,4 @@ function(add_vendor_target targetName)
 endfunction()
 
 # Synchronizes the third-party dependencies of current platform.
-execute_process(COMMAND depsync ${PLATFORM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+execute_process(COMMAND depsync ${PLATFORM} WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
