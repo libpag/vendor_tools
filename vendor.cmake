@@ -77,9 +77,11 @@ function(merge_libraries_into target)
             VERBATIM USES_TERMINAL)
 endfunction()
 
-# add_vendor_target(targetName [STATIC_VENDORS] [vendorNames...] [SHARED_VENDORS] [vendorNames...]])
+# add_vendor_target(targetName [STATIC_VENDORS] [vendorNames...] [SHARED_VENDORS] [vendorNames...] [CONFIG_DIR] [configDir])
 function(add_vendor_target targetName)
     set(IS_SHARED FALSE)
+    set(IS_CONFIG_DIR FALSE)
+    set(CONFIG_DIR ${CMAKE_CURRENT_LIST_DIR})
     foreach (arg ${ARGN})
         if (arg STREQUAL "STATIC_VENDORS")
             set(IS_SHARED FALSE)
@@ -89,7 +91,14 @@ function(add_vendor_target targetName)
             set(IS_SHARED TRUE)
             continue()
         endif ()
-        if (IS_SHARED)
+        if (arg STREQUAL "CONFIG_DIR")
+            set(IS_CONFIG_DIR TRUE)
+            continue()
+        endif ()
+        if (IS_CONFIG_DIR)
+            set(CONFIG_DIR ${arg})
+            set(IS_CONFIG_DIR FALSE)
+        elseif (IS_SHARED)
             list(APPEND sharedVendors ${arg})
         else ()
             list(APPEND staticVendors ${arg})
@@ -105,7 +114,7 @@ function(add_vendor_target targetName)
         if (NOT SHARED_LIBS)
             # build shared libraries immediately if not exist, otherwise the rpath will not be set properly at the first time.
             execute_process(COMMAND node ${VENDOR_TOOLS_DIR}/build ${sharedVendor} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG}
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+                    WORKING_DIRECTORY ${CONFIG_DIR})
         endif ()
         file(GLOB SHARED_LIBS third_party/out/${sharedVendor}/${LIBRARY_ENTRY}/*${CMAKE_SHARED_LIBRARY_SUFFIX})
         list(APPEND VENDOR_SHARED_LIBRARIES ${SHARED_LIBS})
@@ -120,7 +129,7 @@ function(add_vendor_target targetName)
     # Build the vendor libraries of current platform and merge them into a single static library.
     add_custom_command(OUTPUT ${VENDOR_OUTPUT_NAME}
             COMMAND node ${VENDOR_TOOLS_DIR}/build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+            WORKING_DIRECTORY ${CONFIG_DIR}
             BYPRODUCTS ${VENDOR_OUTPUT_LIB} ${VENDOR_SHARED_LIBRARIES}
             VERBATIM USES_TERMINAL)
     # set the output variables:
