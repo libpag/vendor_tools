@@ -87,9 +87,9 @@ if (!options.output) {
 if ((!options.targets || options.targets.length === 0) && isCustomBuild) {
     let basename = path.basename(process.argv[1]);
     let target = "";
-    if (basename.endsWith("-build")) {
+    if (basename.endsWith("-build") || basename.endsWith("_build")) {
         target = basename.substring(0, basename.length - 6);
-    } else if (basename.startsWith("build-")) {
+    } else if (basename.startsWith("build-") || basename.startsWith("build_")) {
         target = basename.substring(6);
     }
     if (target) {
