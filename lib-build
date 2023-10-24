@@ -32,6 +32,12 @@ const optionDeclarations = [
         description: "Build with debug mode enabled."
     },
     {
+        name: "incremental",
+        shortName: "i",
+        type: "boolean",
+        description: "Uses incremental build. The build directory will not be removed after the building finished."
+    },
+    {
         name: "xcframework",
         shortName: "x",
         type: "boolean",
@@ -118,6 +124,7 @@ let outPath = path.resolve(options.output, buildType);
 let cmakeOptions = {};
 cmakeOptions.targets = [targetName];
 cmakeOptions.arguments = cmakeArgs;
+cmakeOptions.incremental = options.incremental;
 Utils.log("====================== build " + targetName + "-" + platform.name + "-" +
     platform.buildType.toLowerCase() + " start ======================");
 Utils.log("[Source]: " + options.source);
