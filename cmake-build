@@ -1,9 +1,8 @@
 #!/usr/bin/env node
-// run 'node camke -h" to print help message
 const path = require("path");
-const CommandLine = require('./CommandLine');
-const CmakeBuild = require("./CMake");
-const Platform = require("./Platform");
+const CommandLine = require('./lib/CommandLine');
+const CmakeBuild = require("./lib/CMake");
+const Platform = require("./lib/Platform");
 
 const optionDeclarations = [
     {
@@ -16,7 +15,7 @@ const optionDeclarations = [
         name: "platform",
         shortName: "p",
         type: "string",
-        description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\"]."
+        description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\", \"web\"]."
     },
     {
         name: "arch",

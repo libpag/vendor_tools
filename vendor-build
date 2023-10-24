@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const path = require("path");
-const CommandLine = require('./CommandLine');
-const Vendor = require('./Vendor');
+const CommandLine = require('./lib/CommandLine');
+const Vendor = require('./lib/Vendor');
 
 const optionDeclarations = [
     {

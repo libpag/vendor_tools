@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-// run 'node mergelib -h" to print help message
-const CommandLine = require('./CommandLine');
-const Platform = require('./Platform');
-const LibraryTool = require("./LibraryTool");
+const CommandLine = require('./lib/CommandLine');
+const Platform = require('./lib/Platform');
+const LibraryTool = require("./lib/LibraryTool");
 
 const optionDeclarations = [
     {
@@ -39,7 +38,7 @@ const optionDeclarations = [
 
 function printHelp(cmd) {
     let output = "";
-    output += "Syntax:   node merge [libraryFile] [libraryFile]... [options]\n";
+    output += "Syntax:   node lib-merge [libraryFile] [libraryFile]... [options]\n";
     output += "Examples: " + cmd + " libpng.a libwebp.a -o libvendor.a -p mac -a x64\n";
     CommandLine.printOptions(optionDeclarations);
     process.stdout.write(output);

@@ -72,7 +72,7 @@ function(merge_libraries_into target)
     endif ()
     separate_arguments(STATIC_LIBRARIES_LIST NATIVE_COMMAND "\"${STATIC_LIBRARIES}\"")
     add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND node ${VENDOR_TOOLS_DIR}/merge -p ${PLATFORM} -a ${ARCH} -v
+            COMMAND node ${VENDOR_TOOLS_DIR}/lib-merge -p ${PLATFORM} -a ${ARCH} -v
             $<TARGET_FILE:${target}> ${STATIC_LIBRARIES_LIST} -o $<TARGET_FILE:${target}>
             VERBATIM USES_TERMINAL)
 endfunction()
@@ -113,7 +113,7 @@ function(add_vendor_target targetName)
         file(GLOB SHARED_LIBS third_party/out/${sharedVendor}/${LIBRARY_ENTRY}/*${CMAKE_SHARED_LIBRARY_SUFFIX})
         if (NOT SHARED_LIBS)
             # build shared libraries immediately if not exist, otherwise the rpath will not be set properly at the first time.
-            execute_process(COMMAND node ${VENDOR_TOOLS_DIR}/build ${sharedVendor} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG}
+            execute_process(COMMAND node ${VENDOR_TOOLS_DIR}/vendor-build ${sharedVendor} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG}
                     WORKING_DIRECTORY ${CONFIG_DIR})
         endif ()
         file(GLOB SHARED_LIBS third_party/out/${sharedVendor}/${LIBRARY_ENTRY}/*${CMAKE_SHARED_LIBRARY_SUFFIX})
@@ -128,7 +128,7 @@ function(add_vendor_target targetName)
     endif ()
     # Build the vendor libraries of current platform and merge them into a single static library.
     add_custom_command(OUTPUT ${VENDOR_OUTPUT_NAME}
-            COMMAND node ${VENDOR_TOOLS_DIR}/build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
+            COMMAND node ${VENDOR_TOOLS_DIR}/vendor-build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
             WORKING_DIRECTORY ${CONFIG_DIR}
             BYPRODUCTS ${VENDOR_OUTPUT_LIB} ${VENDOR_SHARED_LIBRARIES}
             VERBATIM USES_TERMINAL)

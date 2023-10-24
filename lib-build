@@ -1,0 +1,131 @@
+#!/usr/bin/env node
+const path = require("path");
+const CommandLine = require('./lib/CommandLine');
+const CmakeBuild = require("./lib/CMake");
+const Platform = require("./lib/Platform");
+const Utils = require('./lib/Utils');
+const LibraryTool = require("./lib/LibraryTool");
+
+const optionDeclarations = [
+    {
+        name: "source",
+        shortName: "s",
+        type: "string",
+        description: "Specify the project source path."
+    },
+    {
+        name: "output",
+        shortName: "o",
+        type: "string",
+        description: "Specify the library output path."
+    },
+    {
+        name: "platform",
+        shortName: "p",
+        type: "string",
+        description: "Specify the current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\", \"web\"]."
+    },
+    {
+        name: "debug",
+        shortName: "d",
+        type: "boolean",
+        description: "Build with debug mode enabled."
+    },
+    {
+        name: "xcframework",
+        shortName: "x",
+        type: "boolean",
+        description: "Merges all archs of the output libraries into one xcframework if current platform supports it."
+    },
+    {
+        name: "help",
+        shortName: "h",
+        type: "boolean",
+        description: "Print help message."
+    }
+];
+
+function printHelp(cmd) {
+    let output = "";
+    output += "Syntax:   " + cmd + " [-Dcmake_variable=value]... [-Dcmake_variable=value] [options]\n";
+    output += "Examples: " + cmd + " -p ios -o ./out\n";
+    output += "Examples: " + cmd + " --debug\n";
+    output += "Examples: " + cmd + " -DPAG_BUILD_SHARED=ON -p mac --verbose\n";
+    CommandLine.printOptions(optionDeclarations);
+    Utils.log(output);
+}
+
+let args = process.argv;
+let execPath = path.resolve(process.argv[1]);
+let isCustomBuild = execPath !== __filename;
+let cmd = "node " + path.basename(args[1]);
+args = args.slice(2);
+let cmakeArgs = [];
+let cmdArgs = [];
+for (let arg of args) {
+    if (arg.indexOf("-D") === 0) {
+        cmakeArgs.push(arg);
+    } else {
+        cmdArgs.push(arg);
+    }
+}
+let options = CommandLine.parse(cmdArgs, optionDeclarations);
+if (!options.source) {
+    if (isCustomBuild) {
+        options.source = path.dirname(execPath);
+    } else {
+        options.source = process.cwd();
+    }
+} else {
+    options.source = path.resolve(options.source);
+}
+if (!options.output) {
+    options.output = path.resolve("./out");
+} else {
+    options.output = path.resolve(options.output);
+}
+if ((!options.targets || options.targets.length === 0) && isCustomBuild) {
+    let basename = path.basename(process.argv[1]);
+    let target = "";
+    if (basename.endsWith("-build")) {
+        target = basename.substring(0, basename.length - 6);
+    } else if (basename.startsWith("build-")) {
+        target = basename.substring(6);
+    }
+    if (target) {
+        options.targets = [target];
+    }
+}
+if (!options.targets || options.targets.length !== 1) {
+    options.help = true;
+}
+if (options.help) {
+    printHelp(cmd);
+    return;
+}
+if (!options.debug) {
+    if (process.env["VENDOR_BUILD_TYPE"] === "Debug") {
+        options.debug = true;
+    }
+}
+let targetName = options.targets[0];
+let platform = Platform.Create(options.platform, options.debug, true);
+let libraryTool = LibraryTool.Create(platform);
+let cmake = CmakeBuild.Create(platform);
+let buildType = platform.buildType.toLowerCase();
+let sourcePath = options.source;
+let outPath = path.resolve(options.output, buildType);
+let cmakeOptions = {};
+cmakeOptions.targets = [targetName];
+cmakeOptions.arguments = cmakeArgs;
+Utils.log("====================== build " + targetName + "-" + platform.name + "-" +
+    platform.buildType.toLowerCase() + " start ======================");
+Utils.log("[Source]: " + options.source);
+Utils.log("[Output]: " + outPath);
+cmake.build(sourcePath, outPath, cmakeOptions);
+if (options.xcframework) {
+    let libraryPath = path.join(outPath, platform.name);
+    libraryTool.createXCFramework(libraryPath);
+}
+Utils.log("====================== build " + targetName + "-" + platform.name + "-" +
+    platform.buildType.toLowerCase() + " end ======================");
