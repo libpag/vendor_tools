@@ -32,6 +32,12 @@ const optionDeclarations = [
         description: "Build with debug mode enabled."
     },
     {
+        name: "arch",
+        shortName: "a",
+        type: "string",
+        description: "Builds the specified arch only."
+    },
+    {
         name: "incremental",
         shortName: "i",
         type: "boolean",
@@ -116,6 +122,9 @@ if (!options.debug) {
 }
 let targetName = options.targets[0];
 let platform = Platform.Create(options.platform, options.debug, true);
+if (options.arch) {
+    platform.archs = [options.arch];
+}
 let libraryTool = LibraryTool.Create(platform);
 let cmake = CmakeBuild.Create(platform);
 let buildType = platform.buildType.toLowerCase();
