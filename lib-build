@@ -141,7 +141,7 @@ Utils.log("[Output]: " + outPath);
 cmake.build(sourcePath, outPath, cmakeOptions);
 if (options.xcframework) {
     let libraryPath = path.join(outPath, platform.name);
-    libraryTool.createXCFramework(libraryPath);
+    libraryTool.createXCFramework(libraryPath, libraryPath, true);
 }
 Utils.log("====================== build " + targetName + "-" + platform.name + "-" +
     platform.buildType.toLowerCase() + " end ======================");
