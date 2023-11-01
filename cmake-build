@@ -30,6 +30,12 @@ const optionDeclarations = [
         description: "Uses incremental build. The build directory will not be removed after the building finished."
     },
     {
+        name: "native",
+        shortName: "n",
+        type: "boolean",
+        description: "Use the native generator with cmake to build the library if current platform supports it."
+    },
+    {
         name: "debug",
         shortName: "d",
         type: "boolean",
@@ -90,4 +96,5 @@ let cmakeOptions = {};
 cmakeOptions.targets = options.targets;
 cmakeOptions.arguments = cmakeArgs;
 cmakeOptions.incremental = options.incremental;
+cmakeOptions.native = options.native;
 cmake.build(sourcePath, outPath, cmakeOptions);
