@@ -35,7 +35,7 @@ const optionDeclarations = [
         name: "arch",
         shortName: "a",
         type: "string",
-        description: "Builds the specified arch only."
+        description: "Builds the specified arch only. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\", \"arm64-simulator\", \"wasm\"]."
     },
     {
         name: "incremental",
