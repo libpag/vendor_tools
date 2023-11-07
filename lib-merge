@@ -2,6 +2,7 @@
 const CommandLine = require('./lib/CommandLine');
 const Platform = require('./lib/Platform');
 const LibraryTool = require("./lib/LibraryTool");
+const path = require("path");
 
 const optionDeclarations = [
     {
@@ -14,13 +15,19 @@ const optionDeclarations = [
         name: "platform",
         shortName: "p",
         type: "string",
-        description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\"]."
+        description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\", \"web\"]."
+    },
+    {
+        name: "xcframework",
+        shortName: "x",
+        type: "string",
+        description: "Merges all archs in the specified library path into one xcframework if current platform supports it."
     },
     {
         name: "arch",
         shortName: "a",
         type: "string",
-        description: "Specifies the arch of current platform. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\"]."
+        description: "Specifies the arch of current platform. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\", \"arm64-simulator\", \"wasm\"]. Ignored if --xcframework is specified."
     },
     {
         name: "output",
@@ -40,6 +47,7 @@ function printHelp(cmd) {
     let output = "";
     output += "Syntax:   node lib-merge [libraryFile] [libraryFile]... [options]\n";
     output += "Examples: " + cmd + " libpng.a libwebp.a -o libvendor.a -p mac -a x64\n";
+    output += "Examples: " + cmd + " -x vendor/ffavc -p mac -o out/ffavc\n\n";
     CommandLine.printOptions(optionDeclarations);
     process.stdout.write(output);
 }
@@ -52,4 +60,16 @@ if (options.help) {
 }
 let platform = Platform.Create(options.platform, false, options.verbose);
 let libraryTool = LibraryTool.Create(platform);
-libraryTool.mergeLibraries(options.targets, options.output, options.arch);
+if (options.xcframework) {
+    let libraryPath = path.resolve(options.xcframework, platform.name);
+    let outputPath = libraryPath;
+    let removeOrigins = true;
+    if (options.output) {
+        outputPath = path.resolve(options.output, platform.name);
+        removeOrigins = false;
+    }
+    libraryTool.createXCFramework(libraryPath, outputPath, removeOrigins);
+} else {
+    libraryTool.mergeLibraries(options.targets, options.output, options.arch);
+}
+
