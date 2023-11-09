@@ -56,12 +56,6 @@ const optionDeclarations = [
         description: "Use the native generator with cmake to build the library if current platform supports it."
     },
     {
-        name: "verbose",
-        shortName: "v",
-        type: "boolean",
-        description: "Prints message in verbose mode."
-    },
-    {
         name: "help",
         shortName: "h",
         type: "boolean",
@@ -133,7 +127,7 @@ if (!options.debug) {
     }
 }
 let targetName = options.targets[0];
-let platform = Platform.Create(options.platform, options.debug, options.verbose);
+let platform = Platform.Create(options.platform, options.debug, true);
 if (options.arch) {
     platform.archs = [options.arch];
 }
