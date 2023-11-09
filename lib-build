@@ -74,8 +74,8 @@ function printHelp(cmd) {
     output += "Syntax:   " + cmd + " [-Dcmake_variable=value]... [-Dcmake_variable=value] [options]\n";
     output += "Examples: " + cmd + " -p ios -o ./out\n";
     output += "Examples: " + cmd + " --debug\n";
-    output += "Examples: " + cmd + " -DPAG_BUILD_SHARED=ON -p mac\n";
-    CommandLine.printOptions(optionDeclarations);
+    output += "Examples: " + cmd + " -DTGFX_USE_WEBP_ENCODE=ON -p mac\n";
+    output += CommandLine.printOptions(optionDeclarations);
     Utils.log(output);
 }
 

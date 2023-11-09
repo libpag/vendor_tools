@@ -48,7 +48,7 @@ function printHelp(cmd) {
     output += "Syntax:   node lib-merge [libraryFile] [libraryFile]... [options]\n";
     output += "Examples: " + cmd + " libpng.a libwebp.a -o libvendor.a -p mac -a x64\n";
     output += "Examples: " + cmd + " -x vendor/ffavc -p mac -o out/ffavc\n\n";
-    CommandLine.printOptions(optionDeclarations);
+    output += CommandLine.printOptions(optionDeclarations);
     process.stdout.write(output);
 }
 

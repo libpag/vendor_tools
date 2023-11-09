@@ -48,7 +48,7 @@ function printHelp(cmd) {
     output += "Examples: " + cmd + " libpng libwebp\n";
     output += "Examples: " + cmd + " --debug\n";
     output += "Examples: " + cmd + " -p mac --verbose\n";
-    CommandLine.printOptions(optionDeclarations);
+    output += CommandLine.printOptions(optionDeclarations);
     process.stdout.write(output);
 }
 

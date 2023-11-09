@@ -55,8 +55,8 @@ function printHelp(cmd) {
     output += "Syntax:   " + cmd + " [cmakeTarget] [cmakeTarget]... [options]\n";
     output += "Examples: " + cmd + " pag -p ios -o ./out\n";
     output += "Examples: " + cmd + " pag pag-ss --debug\n";
-    output += "Examples: " + cmd + " pag -DPAG_BUILD_SHARED=ON -p mac --verbose\n";
-    CommandLine.printOptions(optionDeclarations);
+    output += "Examples: " + cmd + " pag -DTGFX_USE_WEBP_ENCODE=ON -p mac --verbose\n";
+    output += CommandLine.printOptions(optionDeclarations);
     process.stdout.write(output);
 }
 
