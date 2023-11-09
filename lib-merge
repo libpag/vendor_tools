@@ -56,7 +56,10 @@ let args = process.argv;
 let options = CommandLine.parse(args.slice(2), optionDeclarations);
 if (options.help) {
     printHelp();
-    process.exit(0);
+    if (options.errors.length > 0) {
+        process.exit(1);
+    }
+    return;
 }
 let platform = Platform.Create(options.platform, false, options.verbose);
 let libraryTool = LibraryTool.Create(platform);

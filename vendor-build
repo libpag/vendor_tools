@@ -57,6 +57,9 @@ let options = CommandLine.parse(args.slice(2), optionDeclarations);
 if (options.help) {
     let cmd = "node " + path.basename(args[1]);
     printHelp(cmd);
+    if (options.errors.length > 0) {
+        process.exit(1);
+    }
     return;
 }
 if (!options.debug) {

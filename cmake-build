@@ -78,6 +78,9 @@ if (!options.targets || options.targets.length === 0) {
 }
 if (options.help) {
     printHelp(cmd);
+    if (options.errors.length > 0) {
+        process.exit(1);
+    }
     return;
 }
 if (!options.debug) {
