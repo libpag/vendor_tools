@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const path = require("path");
+const fs = require("fs");
 const CommandLine = require('./lib/CommandLine');
 const CmakeBuild = require("./lib/CMake");
 const Platform = require("./lib/Platform");
@@ -73,6 +74,41 @@ function printHelp(cmd) {
     Utils.log(output);
 }
 
+function getHash(options, cmakeArgs) {
+    let sourcePath = options.source;
+    let shallowFile = path.resolve(sourcePath, ".git/shallow");
+    let commit = "";
+    if (fs.existsSync(shallowFile)) {
+        commit = Utils.readFile(shallowFile);
+    } else {
+        commit = Utils.run("git rev-parse HEAD", sourcePath).trim();
+    }
+    if (commit.length !== 40) {
+        return "";
+    }
+    let list = [commit];
+    list.push(options.targets[0]);
+    list.push(options.arch ? options.arch : "all");
+    list.push(options.incremental ? "incremental" : "full");
+    list.push(options.native ? "native" : "ninja");
+    list.push(options.xcframework ? "xcframework" : "library");
+    list = list.concat(cmakeArgs);
+    let diff = Utils.run("git diff --name-only HEAD", sourcePath);
+    if (diff) {
+        list.push(diff);
+        let files = diff.split("\n");
+        for (let file of files) {
+            let filePath = path.resolve(sourcePath, file.trim());
+            let fileContent = Utils.readFile(filePath);
+            if (fileContent) {
+                list.push(fileContent);
+            }
+        }
+    }
+    let content = list.join("\n");
+    return Utils.getHash(content);
+}
+
 let args = process.argv;
 let execPath = path.resolve(process.argv[1]);
 let isCustomBuild = execPath !== __filename;
@@ -134,11 +170,17 @@ let platform = Platform.Create(options.platform, options.debug, true);
 if (options.arch) {
     platform.archs = [options.arch];
 }
-let libraryTool = LibraryTool.Create(platform);
-let cmake = CmakeBuild.Create(platform);
 let buildType = platform.buildType.toLowerCase();
 let sourcePath = options.source;
 let outPath = path.resolve(options.output, buildType);
+let hashFile = path.join(outPath, platform.name, ".version.sha1");
+let currentHash = Utils.readFile(hashFile);
+Utils.deletePath(hashFile);
+let versionHash = getHash(options, cmakeArgs);
+if (versionHash === currentHash) {
+    return;
+}
+currentHash = versionHash;
 let cmakeOptions = {};
 cmakeOptions.targets = [targetName];
 cmakeOptions.arguments = cmakeArgs;
@@ -148,10 +190,15 @@ Utils.log("====================== build " + targetName + "-" + platform.name + "
     platform.buildType.toLowerCase() + " start ======================");
 Utils.log("[Source]: " + options.source);
 Utils.log("[Output]: " + outPath);
+let cmake = CmakeBuild.Create(platform);
 cmake.build(sourcePath, outPath, cmakeOptions);
 if (options.xcframework) {
+    let libraryTool = LibraryTool.Create(platform);
     let libraryPath = path.join(outPath, platform.name);
     libraryTool.createXCFramework(libraryPath, libraryPath, true);
+}
+if (currentHash) {
+    Utils.writeFile(hashFile, currentHash);
 }
 Utils.log("====================== build " + targetName + "-" + platform.name + "-" +
     platform.buildType.toLowerCase() + " end ======================");
