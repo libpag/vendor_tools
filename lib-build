@@ -193,14 +193,13 @@ if (options.arch) {
 let buildType = platform.buildType.toLowerCase();
 let sourcePath = options.source;
 let outPath = path.resolve(options.output, buildType, platform.name);
-let hashFile = path.join(outPath, ".version.md5");
+let hashFile = path.join(outPath, "." + targetName + ".md5");
 let currentHash = Utils.readFile(hashFile);
 let versionHash = getHash(options, cmakeArgs);
 if (versionHash === currentHash) {
     return;
 }
-let excludes = [path.join(outPath, "build")];
-Utils.deletePath(outPath, excludes);
+Utils.deletePath(hashFile);
 currentHash = versionHash;
 let cmakeOptions = {};
 cmakeOptions.targets = [targetName];
