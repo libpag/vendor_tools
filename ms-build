@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+const Platform = require('./lib/Platform');
+const Utils = require("./lib/Utils");
+
+let platform = Platform.Create("win", false, true);
+let msBuild = platform.prependVCVars("msbuild", "x64");
+let args = process.argv.slice(2);
+let cmd = msBuild + " " + args.join(" ");
+Utils.exec(cmd, process.cwd(), false);
+
