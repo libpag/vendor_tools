@@ -192,14 +192,15 @@ if (options.arch) {
 }
 let buildType = platform.buildType.toLowerCase();
 let sourcePath = options.source;
-let outPath = path.resolve(options.output, buildType);
-let hashFile = path.join(outPath, platform.name, ".version.md5");
+let outPath = path.resolve(options.output, buildType, platform.name);
+let hashFile = path.join(outPath, ".version.md5");
 let currentHash = Utils.readFile(hashFile);
 let versionHash = getHash(options, cmakeArgs);
 if (versionHash === currentHash) {
     return;
 }
-Utils.deletePath(hashFile);
+let excludes = [path.join(outPath, "build")];
+Utils.deletePath(outPath, excludes);
 currentHash = versionHash;
 let cmakeOptions = {};
 cmakeOptions.targets = [targetName];
@@ -209,13 +210,12 @@ cmakeOptions.native = options.native;
 Utils.log("====================== build " + targetName + "-" + platform.name + "-" +
     platform.buildType.toLowerCase() + " start ======================");
 Utils.log("[Source]: " + options.source);
-Utils.log("[Output]: " + outPath);
+Utils.log("[Output]: " + options.output);
 let cmake = CmakeBuild.Create(platform);
-cmake.build(sourcePath, outPath, cmakeOptions);
+cmake.build(sourcePath, path.resolve(options.output, buildType), cmakeOptions);
 if (options.xcframework) {
     let libraryTool = LibraryTool.Create(platform);
-    let libraryPath = path.join(outPath, platform.name);
-    libraryTool.createXCFramework(libraryPath, libraryPath, true);
+    libraryTool.createXCFramework(outPath, outPath, true);
 }
 if (currentHash) {
     Utils.writeFile(hashFile, currentHash);
