@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 const CommandLine = require('./lib/CommandLine');
 const CmakeBuild = require("./lib/CMake");
 const Platform = require("./lib/Platform");
@@ -75,38 +76,57 @@ function printHelp(cmd) {
 }
 
 function getHash(options, cmakeArgs) {
-    let sourcePath = options.source;
-    let shallowFile = path.resolve(sourcePath, ".git/shallow");
-    let commit = "";
-    if (fs.existsSync(shallowFile)) {
-        commit = Utils.readFile(shallowFile);
-    } else {
-        commit = Utils.run("git rev-parse HEAD", sourcePath).trim();
-    }
-    if (commit.length !== 40) {
-        return "";
-    }
-    let list = [commit];
+    let list = [];
     list.push(options.targets[0]);
     list.push(options.arch ? options.arch : "all");
     list.push(options.incremental ? "incremental" : "full");
     list.push(options.native ? "native" : "ninja");
     list.push(options.xcframework ? "xcframework" : "library");
     list = list.concat(cmakeArgs);
-    let diff = Utils.run("git diff --name-only HEAD", sourcePath);
-    if (diff) {
-        list.push(diff);
-        let files = diff.split("\n");
+    let sourcePath = options.source;
+    let targetName = options.targets[0];
+    let hashConfigFile = path.resolve(sourcePath, targetName + ".hash");
+    let hashFiles = [];
+    if (fs.existsSync(hashConfigFile)) {
+        let hasConfig = Utils.readFile(hashConfigFile);
+        let files = hasConfig.split("\n");
         for (let file of files) {
             let filePath = path.resolve(sourcePath, file.trim());
-            let fileContent = Utils.readFile(filePath);
-            if (fileContent) {
-                list.push(fileContent);
+            let fileList = Utils.findFiles(filePath);
+            hashFiles = hashFiles.concat(fileList);
+        }
+    } else {
+        let shallowFile = path.resolve(sourcePath, ".git/shallow");
+        let commit = "";
+        if (fs.existsSync(shallowFile)) {
+            commit = Utils.readFile(shallowFile);
+        } else {
+            commit = Utils.run("git rev-parse HEAD", sourcePath).trim();
+        }
+        if (commit.length !== 40) {
+            return "";
+        }
+        list.push(commit);
+        let diff = Utils.run("git diff --name-only HEAD", sourcePath);
+        if (diff) {
+            let files = diff.split("\n");
+            for (let file of files) {
+                let filePath = path.resolve(sourcePath, file.trim());
+                hashFiles.push(filePath);
             }
         }
     }
+    let hash = crypto.createHash('md5')
     let content = list.join("\n");
-    return Utils.getHash(content);
+    hash.update(content)
+    for (let filePath of hashFiles) {
+        hash.update(filePath);
+        let fileContent = Utils.readFile(filePath);
+        if (fileContent) {
+            hash.update(fileContent);
+        }
+    }
+    return hash.digest('hex')
 }
 
 let args = process.argv;
@@ -173,7 +193,7 @@ if (options.arch) {
 let buildType = platform.buildType.toLowerCase();
 let sourcePath = options.source;
 let outPath = path.resolve(options.output, buildType);
-let hashFile = path.join(outPath, platform.name, ".version.sha1");
+let hashFile = path.join(outPath, platform.name, ".version.md5");
 let currentHash = Utils.readFile(hashFile);
 Utils.deletePath(hashFile);
 let versionHash = getHash(options, cmakeArgs);
