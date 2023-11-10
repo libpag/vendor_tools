@@ -195,11 +195,11 @@ let sourcePath = options.source;
 let outPath = path.resolve(options.output, buildType);
 let hashFile = path.join(outPath, platform.name, ".version.md5");
 let currentHash = Utils.readFile(hashFile);
-Utils.deletePath(hashFile);
 let versionHash = getHash(options, cmakeArgs);
 if (versionHash === currentHash) {
     return;
 }
+Utils.deletePath(hashFile);
 currentHash = versionHash;
 let cmakeOptions = {};
 cmakeOptions.targets = [targetName];
