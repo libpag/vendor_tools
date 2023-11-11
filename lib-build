@@ -37,7 +37,7 @@ const optionDeclarations = [
         name: "arch",
         shortName: "a",
         type: "string",
-        description: "Builds the specified arch only. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\", \"arm64-simulator\", \"wasm\"]."
+        description: "Builds the specified arch only. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\", \"arm64-simulator\", \"wasm\"]. Ignored if --xcframework is specified."
     },
     {
         name: "incremental",
@@ -77,11 +77,7 @@ function printHelp(cmd) {
 
 function getHash(options, cmakeArgs) {
     let list = [];
-    list.push(options.targets[0]);
-    list.push(options.arch ? options.arch : "all");
-    list.push(options.incremental ? "incremental" : "full");
     list.push(options.native ? "native" : "ninja");
-    list.push(options.xcframework ? "xcframework" : "library");
     list = list.concat(cmakeArgs);
     let sourcePath = options.source;
     let targetName = options.targets[0];
@@ -127,6 +123,35 @@ function getHash(options, cmakeArgs) {
         }
     }
     return hash.digest('hex')
+}
+
+function buildArch(options, cmakeArgs, platform, versionHash, message) {
+    let targetName = options.targets[0];
+    let arch = platform.archs[0];
+    let buildType = platform.buildType.toLowerCase();
+    let sourcePath = options.source;
+    let outPath = path.resolve(options.output, buildType, platform.name);
+    let hashFile = path.join(outPath, "." + targetName + "." + arch + ".md5");
+    let currentHash = Utils.readFile(hashFile);
+    if (versionHash === currentHash) {
+        return false;
+    }
+    Utils.deletePath(hashFile);
+    currentHash = versionHash;
+    let cmakeOptions = {};
+    cmakeOptions.targets = [targetName];
+    cmakeOptions.arguments = cmakeArgs;
+    cmakeOptions.incremental = options.incremental;
+    cmakeOptions.native = options.native;
+    if (message) {
+        Utils.log(message);
+    }
+    let cmake = CmakeBuild.Create(platform);
+    cmake.build(sourcePath, path.resolve(options.output, buildType), cmakeOptions);
+    if (currentHash) {
+        Utils.writeFile(hashFile, currentHash);
+    }
+    return true;
 }
 
 let args = process.argv;
@@ -185,39 +210,54 @@ if (!options.debug) {
         options.debug = true;
     }
 }
-let targetName = options.targets[0];
 let platform = Platform.Create(options.platform, options.debug, true);
+if (options.xcframework && options.arch) {
+    delete options.arch;
+}
 if (options.arch) {
     platform.setArch(options.arch);
 }
+
+let targetName = options.targets[0];
 let buildType = platform.buildType.toLowerCase();
-let sourcePath = options.source;
-let outPath = path.resolve(options.output, buildType, platform.name);
-let hashFile = path.join(outPath, "." + targetName + ".md5");
-let currentHash = Utils.readFile(hashFile);
+let startMessage = "====================== build " + targetName + "-" + platform.name + "-" +
+    buildType + " start ======================";
+startMessage += "\n[Source]: " + options.source;
+startMessage += "\n[Output]: " + options.output;
 let versionHash = getHash(options, cmakeArgs);
-if (versionHash === currentHash) {
-    return;
+let archs = platform.archs;
+for (let arch of archs) {
+    platform.archs = [arch];
+    if (buildArch(options, cmakeArgs, platform, versionHash, startMessage)) {
+        startMessage = "";
+    }
 }
-Utils.deletePath(hashFile);
-currentHash = versionHash;
-let cmakeOptions = {};
-cmakeOptions.targets = [targetName];
-cmakeOptions.arguments = cmakeArgs;
-cmakeOptions.incremental = options.incremental;
-cmakeOptions.native = options.native;
-Utils.log("====================== build " + targetName + "-" + platform.name + "-" +
-    platform.buildType.toLowerCase() + " start ======================");
-Utils.log("[Source]: " + options.source);
-Utils.log("[Output]: " + options.output);
-let cmake = CmakeBuild.Create(platform);
-cmake.build(sourcePath, path.resolve(options.output, buildType), cmakeOptions);
+platform.archs = archs;
+
 if (options.xcframework) {
-    let libraryTool = LibraryTool.Create(platform);
-    libraryTool.createXCFramework(outPath, outPath, true);
+    let outPath = path.resolve(options.output, buildType, platform.name);
+    let hashFile = path.join(outPath, "." + targetName + ".xcframework.md5");
+    let currentHash = Utils.readFile(hashFile);
+    if (versionHash !== currentHash) {
+        if (startMessage) {
+            Utils.log(startMessage);
+            startMessage = "";
+        }
+        Utils.deletePath(hashFile);
+        currentHash = versionHash;
+        let libraryTool = LibraryTool.Create(platform);
+        libraryTool.createXCFramework(outPath, outPath, false, function (library) {
+            let ext = path.extname(library);
+            let name = path.parse(library).name;
+            return ext && name.indexOf(targetName) !== -1;
+        });
+        if (currentHash) {
+            Utils.writeFile(hashFile, currentHash);
+        }
+    }
 }
-if (currentHash) {
-    Utils.writeFile(hashFile, currentHash);
+
+if (!startMessage) {
+    Utils.log("====================== build " + targetName + "-" + platform.name + "-" +
+        buildType + " end ======================");
 }
-Utils.log("====================== build " + targetName + "-" + platform.name + "-" +
-    platform.buildType.toLowerCase() + " end ======================");
