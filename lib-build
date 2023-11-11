@@ -215,11 +215,7 @@ if (options.arch) {
 let targetName = options.targets[0];
 let buildType = platform.buildType.toLowerCase();
 if (!options.output) {
-    if (isCustomBuild) {
-        options.output = path.resolve(path.dirname(execPath), "out", buildType, platform.name);
-    } else {
-        options.output = path.resolve("./out", buildType, platform.name);
-    }
+    options.output = path.resolve(options.source, "out", buildType, platform.name);
 } else {
     options.output = path.resolve(options.output);
 }
