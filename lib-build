@@ -68,7 +68,7 @@ const optionDeclarations = [
 function printHelp(cmd) {
     let output = "";
     output += "Syntax:   " + cmd + " [-Dcmake_variable=value]... [-Dcmake_variable=value] [options]\n";
-    output += "Examples: " + cmd + " -p ios -o ./out\n";
+    output += "Examples: " + cmd + " -p ios -o ./out/ios\n";
     output += "Examples: " + cmd + " --debug\n";
     output += "Examples: " + cmd + " -DTGFX_USE_WEBP_ENCODE=ON -p mac\n";
     output += CommandLine.printOptions(optionDeclarations);
@@ -130,7 +130,7 @@ function buildArch(options, cmakeArgs, platform, versionHash, message) {
     let arch = platform.archs[0];
     let buildType = platform.buildType.toLowerCase();
     let sourcePath = options.source;
-    let outPath = path.resolve(options.output, buildType, platform.name);
+    let outPath = options.output;
     let hashFile = path.join(outPath, "." + targetName + "." + arch + ".md5");
     let currentHash = Utils.readFile(hashFile);
     if (versionHash === currentHash) {
@@ -147,7 +147,7 @@ function buildArch(options, cmakeArgs, platform, versionHash, message) {
         Utils.log(message);
     }
     let cmake = CmakeBuild.Create(platform);
-    cmake.build(sourcePath, path.resolve(options.output, buildType), cmakeOptions);
+    cmake.build(sourcePath, outPath, cmakeOptions);
     if (currentHash) {
         Utils.writeFile(hashFile, currentHash);
     }
@@ -177,11 +177,6 @@ if (!options.source) {
     }
 } else {
     options.source = path.resolve(options.source);
-}
-if (!options.output) {
-    options.output = path.resolve("./out");
-} else {
-    options.output = path.resolve(options.output);
 }
 if ((!options.targets || options.targets.length === 0) && isCustomBuild) {
     let basename = path.basename(process.argv[1]);
@@ -217,9 +212,18 @@ if (options.xcframework && options.arch) {
 if (options.arch) {
     platform.setArch(options.arch);
 }
-
 let targetName = options.targets[0];
 let buildType = platform.buildType.toLowerCase();
+if (!options.output) {
+    if (isCustomBuild) {
+        options.output = path.resolve(path.dirname(execPath), "out", buildType, platform.name);
+    } else {
+        options.output = path.resolve("./out", buildType, platform.name);
+    }
+} else {
+    options.output = path.resolve(options.output);
+}
+
 let startMessage = "====================== build " + targetName + "-" + platform.name + "-" +
     buildType + " start ======================";
 startMessage += "\n[Source]: " + options.source;
@@ -235,7 +239,7 @@ for (let arch of archs) {
 platform.archs = archs;
 
 if (options.xcframework) {
-    let outPath = path.resolve(options.output, buildType, platform.name);
+    let outPath = options.output;
     let hashFile = path.join(outPath, "." + targetName + ".xcframework.md5");
     let currentHash = Utils.readFile(hashFile);
     if (versionHash !== currentHash) {
