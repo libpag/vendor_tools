@@ -1,10 +1,50 @@
 #!/usr/bin/env node
+const path = require("path");
 const Platform = require('./lib/Platform');
 const Utils = require("./lib/Utils");
+const CommandLine = require('./lib/CommandLine');
 
+const optionDeclarations = [
+    {
+        name: "arch",
+        shortName: "a",
+        type: "string",
+        description: "Specify the arch of the Command Prompt for VS. Supported archs: [\"x86\", \"x64\"]."
+    },
+    {
+        name: "help",
+        shortName: "h",
+        type: "boolean",
+        description: "Print help message."
+    }
+];
+
+function printHelp(cmd) {
+    let output = "";
+    output += "Syntax:   " + cmd + " [-a x86|x64] [msbuild options]\n";
+    output += "Examples: " + cmd + " -a x64 win/Win32Demo.sln /p:Configuration=Debug /p:Platform=x64\n";
+    output += CommandLine.printOptions(optionDeclarations);
+    Utils.log(output);
+}
+
+let args = process.argv;
+let cmd = "node " + path.basename(args[1]);
+args = args.slice(2);
+let options = CommandLine.parse(args, optionDeclarations);
+if (options.help) {
+    printHelp(cmd);
+    if (options.errors.length > 0) {
+        process.exit(1);
+    }
+    return;
+}
 let platform = Platform.Create("win", false, true);
-let msBuild = platform.prependVCVars("msbuild", "x64");
-let args = process.argv.slice(2);
-let cmd = msBuild + " " + args.join(" ");
-Utils.exec(cmd, process.cwd(), false);
+if (!options.arch) {
+    options.arch = "x64";
+}
+
+let msBuild = platform.prependVCVars("msbuild", options.arch);
+let command = msBuild + " " + options.targets.join(" ");
+Utils.log(command);
+Utils.exec(command, process.cwd(), false);
 
