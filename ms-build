@@ -41,6 +41,8 @@ if (options.help) {
 let platform = Platform.Create("win", false, true);
 if (!options.arch) {
     options.arch = "x64";
+} else {
+    options.arch = options.arch.toLowerCase();
 }
 
 let msBuild = platform.prependVCVars("msbuild", options.arch);

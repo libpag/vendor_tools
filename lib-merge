@@ -62,6 +62,11 @@ if (options.help) {
     return;
 }
 let platform = Platform.Create(options.platform, false, options.verbose);
+if (!options.arch) {
+    options.arch = platform.archs[0];
+} else {
+    options.arch = options.arch.toLowerCase();
+}
 let libraryTool = LibraryTool.Create(platform);
 if (options.xcframework) {
     let libraryPath = path.resolve(options.xcframework, platform.name);
