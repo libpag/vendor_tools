@@ -87,7 +87,8 @@
 #    CMAKE_OSX_SYSROOT, but can also be manually specified (although this should
 #    not be required).
 #
-# DEPLOYMENT_TARGET: Minimum SDK version to target. Default 2.0 on watchOS and 9.0 on tvOS+iOS
+# DEPLOYMENT_TARGET: Minimum SDK version to target. Default 4.0 on watchOS, 10.15 on macOS(x64), 11.0 on macOS(arm64)
+# and 9.0 on tvOS+iOS
 #
 # NAMED_LANGUAGE_SUPPORT:
 #    ON (default) = Will require "enable_language(OBJC) and/or enable_language(OBJCXX)" for full OBJC|OBJCXX support
@@ -259,8 +260,8 @@ if(NOT DEFINED DEPLOYMENT_TARGET)
     # Unless specified, SDK version 4.0 is used by default as minimum target version (watchOS).
     set(DEPLOYMENT_TARGET "4.0")
   elseif(PLATFORM STREQUAL "MAC")
-    # Unless specified, SDK version 10.13 (High Sierra) is used by default as the minimum target version (macos).
-    set(DEPLOYMENT_TARGET "10.13")
+    # Unless specified, SDK version 10.15 (Catalina) is used by default as the minimum target version (macos).
+    set(DEPLOYMENT_TARGET "10.15")
   elseif(PLATFORM STREQUAL "VISIONOS" OR PLATFORM STREQUAL "SIMULATOR_VISIONOS" OR PLATFORM STREQUAL "SIMULATOR64_VISIONOS")
     # Unless specified, SDK version 1.0 is used by default as minimum target version (visionOS).
     set(DEPLOYMENT_TARGET "1.0")
@@ -274,8 +275,8 @@ if(NOT DEFINED DEPLOYMENT_TARGET)
     # Unless specified, SDK version 13.0 is used by default as the minimum target version (mac catalyst minimum requirement).
     set(DEPLOYMENT_TARGET "13.1")
   else()
-    # Unless specified, SDK version 11.0 is used by default as the minimum target version (iOS, tvOS).
-    set(DEPLOYMENT_TARGET "11.0")
+    # Unless specified, SDK version 9.0 is used by default as the minimum target version (iOS, tvOS).
+    set(DEPLOYMENT_TARGET "9.0")
   endif()
   message(STATUS "[DEFAULTS] Using the default min-version since DEPLOYMENT_TARGET not provided!")
 elseif(DEFINED DEPLOYMENT_TARGET AND PLATFORM MATCHES "^MAC_CATALYST" AND ${DEPLOYMENT_TARGET} VERSION_LESS "13.1")
@@ -597,9 +598,9 @@ set(ENABLE_BITCODE_INT ${ENABLE_BITCODE} CACHE BOOL
         "Whether or not to enable bitcode" FORCE)
 # Use ARC or not
 if(NOT DEFINED ENABLE_ARC)
-  # Unless specified, enable ARC support by default
-  set(ENABLE_ARC ON)
-  message(STATUS "[DEFAULTS] Enabling ARC support by default. ENABLE_ARC not provided!")
+  # Unless specified, disable ARC support by default
+  set(ENABLE_ARC OFF)
+  message(STATUS "[DEFAULTS] Disabling ARC support by default. ENABLE_ARC not provided!")
 endif()
 set(ENABLE_ARC_INT ${ENABLE_ARC} CACHE BOOL "Whether or not to enable ARC" FORCE)
 # Use hidden visibility or not
