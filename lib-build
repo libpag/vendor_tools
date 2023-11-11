@@ -97,13 +97,13 @@ function getHash(options, cmakeArgs) {
         if (fs.existsSync(shallowFile)) {
             commit = Utils.readFile(shallowFile);
         } else {
-            commit = Utils.run("git rev-parse HEAD", sourcePath).trim();
+            commit = Utils.execSafe("git rev-parse HEAD", sourcePath).trim();
         }
         if (commit.length !== 40) {
             return "";
         }
         list.push(commit);
-        let diff = Utils.run("git diff --name-only HEAD", sourcePath);
+        let diff = Utils.execSafe("git diff --name-only HEAD", sourcePath);
         if (diff) {
             let files = diff.split("\n");
             for (let file of files) {

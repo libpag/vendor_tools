@@ -47,6 +47,5 @@ if (!options.arch) {
 
 let msBuild = platform.prependVCVars("msbuild", options.arch);
 let command = msBuild + " " + options.targets.join(" ");
-Utils.log(command);
-Utils.exec(command, process.cwd(), false);
+Utils.exec(command);
 
