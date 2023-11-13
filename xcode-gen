@@ -1,0 +1,89 @@
+#!/usr/bin/env node
+const path = require("path");
+const fs = require("fs");
+const Utils = require('./lib/Utils');
+const XCode = require('./lib/XCode');
+const Vendor = require('./lib/Vendor');
+const CommandLine = require('./lib/CommandLine');
+
+const KnownPlatforms = ["mac", "ios", "simulator"];
+const KnownArchs = ["x64", "arm64"];
+
+const optionDeclarations = [
+    {
+        name: "output",
+        shortName: "o",
+        type: "string",
+        description: "Specify the output path of the generated project."
+    },
+    {
+        name: "platform",
+        shortName: "p",
+        type: "string",
+        description: "Specify the platform to generate. Supported platforms: [\"mac\", \"ios\", \"simulator\"]."
+    },
+    {
+        name: "arch",
+        shortName: "a",
+        type: "string",
+        description: "Specify the arch of the generated project. Supported archs: [\"x64\", \"arm64\"]."
+    },
+    {
+        name: "help",
+        shortName: "h",
+        type: "boolean",
+        description: "Print help message."
+    }
+];
+
+function printHelp(cmd) {
+    let output = "";
+    output += "Syntax:   " + cmd + " source [options] [-Dcmake_variable=value]... [-Dcmake_variable=value]\n";
+    output += "Examples: " + cmd + " ../ -p mac -DTGFX_USE_WEBP_ENCODE=ON\n";
+    output += "Examples: " + cmd + " ../ -p simulator -a arm64\n";
+    output += CommandLine.printOptions(optionDeclarations);
+    Utils.log(output);
+}
+
+
+let args = process.argv;
+let cmd = "node " + path.basename(args[1]);
+args = args.slice(2);
+let cmakeArgs = [];
+let cmdArgs = [];
+for (let arg of args) {
+    if (arg.indexOf("-D") === 0) {
+        cmakeArgs.push(arg);
+    } else {
+        cmdArgs.push(arg);
+    }
+}
+let options = CommandLine.parse(cmdArgs, optionDeclarations, KnownPlatforms, KnownArchs);
+options.cmakeArgs = cmakeArgs;
+if (!options.output) {
+    options.output = process.cwd();
+}
+if (!options.targets || options.targets.length !== 1) {
+    options.help = true;
+}
+if (options.help) {
+    printHelp(cmd);
+    if (options.errors.length > 0) {
+        process.exit(1);
+    }
+    return;
+}
+
+let vendorFile = path.resolve(options.targets[0], "vendor.json");
+if (fs.existsSync(vendorFile)) {
+    let platform = options.platform;
+    if (platform === "simulator") {
+        platform = "ios";
+    } else if (!platform) {
+        platform = "mac";
+    }
+    let vendor = new Vendor(vendorFile, platform);
+    vendor.buildAll();
+}
+
+XCode.Generate(options);
