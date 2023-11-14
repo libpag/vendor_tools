@@ -82,7 +82,7 @@ if (fs.existsSync(vendorFile)) {
     } else if (!platform) {
         platform = "mac";
     }
-    let vendor = new Vendor(vendorFile, platform);
+    let vendor = new Vendor(vendorFile, platform, false, true);
     vendor.buildAll();
 }
 
