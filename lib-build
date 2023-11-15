@@ -141,7 +141,7 @@ function buildArch(options, cmakeArgs, platform, versionHash, message) {
     let cmakeOptions = {};
     cmakeOptions.targets = [targetName];
     cmakeOptions.arguments = cmakeArgs;
-    cmakeOptions.incremental = options.incremental;
+    cmakeOptions.incremental = !!options.incremental || !!options.xcframework;
     cmakeOptions.native = options.native;
     if (message) {
         Utils.log(message);
@@ -255,6 +255,7 @@ if (options.xcframework) {
             Utils.writeFile(hashFile, currentHash);
         }
     }
+    Utils.deletePath(path.join(outPath, "build-" + targetName));
 }
 
 if (!startMessage) {
