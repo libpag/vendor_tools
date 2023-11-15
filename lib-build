@@ -125,7 +125,7 @@ function getHash(options, cmakeArgs) {
     return hash.digest('hex')
 }
 
-function buildArch(options, cmakeArgs, platform, versionHash, message, forceBuild) {
+function buildArch(options, cmakeArgs, platform, versionHash, message) {
     let targetName = options.targets[0];
     let arch = platform.archs[0];
     let buildType = platform.buildType.toLowerCase();
@@ -133,7 +133,7 @@ function buildArch(options, cmakeArgs, platform, versionHash, message, forceBuil
     let outPath = options.output;
     let xcHashFile = path.join(outPath, "." + targetName + "." + arch + ".md5");
     let currentHash = Utils.readFile(xcHashFile);
-    if (!forceBuild && versionHash === currentHash) {
+    if (!options.xcframework && versionHash === currentHash) {
         return false;
     }
     Utils.deletePath(xcHashFile);
@@ -227,27 +227,28 @@ startMessage += "\n[Output]: " + options.output;
 let versionHash = getHash(options, cmakeArgs);
 let xcHashFile = path.join(options.output, "." + targetName + ".xcframework.md5");
 let currentXCHash = "";
-let forceBuild = false;
 if (options.xcframework) {
     currentXCHash = Utils.readFile(xcHashFile);
-    forceBuild = (versionHash !== currentXCHash);
+    if (versionHash === currentXCHash) {
+        return;
+    }
+    Utils.deletePath(xcHashFile);
 }
 
 let archs = platform.archs;
 for (let arch of archs) {
     platform.archs = [arch];
-    if (buildArch(options, cmakeArgs, platform, versionHash, startMessage, forceBuild)) {
+    if (buildArch(options, cmakeArgs, platform, versionHash, startMessage)) {
         startMessage = "";
     }
 }
 platform.archs = archs;
 
-if (options.xcframework && versionHash !== currentXCHash) {
+if (options.xcframework) {
     if (startMessage) {
         Utils.log(startMessage);
         startMessage = "";
     }
-    Utils.deletePath(xcHashFile);
     currentXCHash = versionHash;
     let libraryTool = LibraryTool.Create(platform);
     libraryTool.createXCFramework(options.output, options.output, false, function (library) {
