@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 const path = require("path");
-const fs = require("fs");
 const Utils = require('./lib/Utils');
 const XCode = require('./lib/XCode');
-const Vendor = require('./lib/Vendor');
 const CommandLine = require('./lib/CommandLine');
 
 const KnownPlatforms = ["mac", "ios", "simulator"];
@@ -29,6 +27,18 @@ const optionDeclarations = [
         description: "Specify the arch of the generated project. Supported archs: [\"x64\", \"arm64\"]."
     },
     {
+        name: "workspace",
+        shortName: "w",
+        type: "boolean",
+        description: "Generate an additional *.xcworkspace for the exsiting xcode project in the output directory."
+    },
+    {
+        name: "buildsystem",
+        shortName: "b",
+        type: "boolean",
+        description: "Pass the '-T buildsystem=1' option to cmake to use old build system under Xcode 12."
+    },
+    {
         name: "help",
         shortName: "h",
         type: "boolean",
@@ -38,7 +48,7 @@ const optionDeclarations = [
 
 function printHelp(cmd) {
     let output = "";
-    output += "Syntax:   " + cmd + " source [options] [-Dcmake_variable=value]... [-Dcmake_variable=value]\n";
+    output += "Syntax:   " + cmd + " sourcePath [options] [-Dcmake_variable=value]... [-Dcmake_variable=value]\n";
     output += "Examples: " + cmd + " ../ -p mac -DTGFX_USE_WEBP_ENCODE=ON\n";
     output += "Examples: " + cmd + " ../ -p simulator -a arm64\n";
     output += CommandLine.printOptions(optionDeclarations);
@@ -72,18 +82,6 @@ if (options.help) {
         process.exit(1);
     }
     return;
-}
-
-let vendorFile = path.resolve(options.targets[0], "vendor.json");
-if (fs.existsSync(vendorFile)) {
-    let platform = options.platform;
-    if (platform === "simulator") {
-        platform = "ios";
-    } else if (!platform) {
-        platform = "mac";
-    }
-    let vendor = new Vendor(vendorFile, platform, false, true);
-    vendor.buildAll();
 }
 
 XCode.Generate(options);
