@@ -78,6 +78,8 @@ function printHelp(cmd) {
 function getHash(options, cmakeArgs) {
     let list = [];
     list.push(options.native ? "native" : "ninja");
+    list.push(options.platform);
+    list.push(options.debug ? "debug" : "release");
     list = list.concat(cmakeArgs);
     let sourcePath = options.source;
     let targetName = options.targets[0];
