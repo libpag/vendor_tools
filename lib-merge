@@ -76,7 +76,7 @@ if (options.xcframework) {
         outputPath = path.resolve(options.output, platform.name);
         removeOrigins = false;
     }
-    libraryTool.createXCFramework(libraryPath, outputPath, removeOrigins);
+    libraryTool.createXCFramework(libraryPath, outputPath, removeOrigins, false);
 } else {
     libraryTool.mergeLibraries(options.targets, options.output, options.arch);
 }

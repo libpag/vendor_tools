@@ -55,7 +55,7 @@ const optionDeclarations = [
         name: "native",
         shortName: "n",
         type: "boolean",
-        description: "Use the native generator with cmake to build the library if current platform supports it."
+        description: "Use the native generator with cmake to build the library if current platform supports it. Set to true if --xcframework is specified."
     },
     {
         name: "help",
@@ -208,6 +208,7 @@ if (!options.debug) {
 let platform = Platform.Create(options.platform, options.debug, true);
 if (options.xcframework && options.arch) {
     delete options.arch;
+    options.native = true;
 }
 if (options.arch) {
     platform.setArch(options.arch);
@@ -251,7 +252,7 @@ if (options.xcframework) {
     }
     currentXCHash = versionHash;
     let libraryTool = LibraryTool.Create(platform);
-    libraryTool.createXCFramework(options.output, options.output, false, function (library) {
+    libraryTool.createXCFramework(options.output, options.output, false, true, function (library) {
         let ext = path.extname(library);
         let name = path.parse(library).name;
         return ext && name.indexOf(targetName) !== -1;
