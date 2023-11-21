@@ -237,7 +237,9 @@ if (options.xcframework) {
     }
     Utils.deletePath(xcHashFile);
 }
-
+if (!options.incremental) {
+    Utils.deletePath(path.join(options.output, "build-" + targetName));
+}
 let archs = platform.archs;
 for (let arch of archs) {
     platform.archs = [arch];
