@@ -97,12 +97,9 @@ function getHash(options, cmakeArgs) {
         let shallowFile = path.resolve(sourcePath, ".git/shallow");
         let commit = "";
         if (fs.existsSync(shallowFile)) {
-            commit = Utils.readFile(shallowFile);
+            commit = Utils.readFile(shallowFile).trim();
         } else {
             commit = Utils.execSafe("git rev-parse HEAD", sourcePath).trim();
-        }
-        if (commit.length !== 40) {
-            return "";
         }
         list.push(commit);
         let diff = Utils.execSafe("git diff --name-only HEAD", sourcePath);
