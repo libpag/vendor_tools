@@ -75,11 +75,12 @@ function printHelp(cmd) {
     Utils.log(output);
 }
 
-function getHash(options, cmakeArgs) {
+function getHash(options, cmakeArgs, platform) {
     let list = [];
     list.push(options.native ? "native" : "ninja");
-    list.push(options.platform);
     list.push(options.debug ? "debug" : "release");
+    list.push(platform.name);
+    list.push(platform.toolVersion());
     list = list.concat(cmakeArgs);
     let sourcePath = options.source;
     let targetName = options.targets[0];
@@ -127,7 +128,7 @@ function getHash(options, cmakeArgs) {
 function buildArch(options, cmakeArgs, platform, versionHash, message) {
     let targetName = options.targets[0];
     let arch = platform.archs[0];
-    let buildType = platform.buildType.toLowerCase();
+    let buildType = platform.buildType().toLowerCase();
     let sourcePath = options.source;
     let outPath = options.output;
     let xcHashFile = path.join(outPath, "." + targetName + "." + arch + ".md5");
@@ -213,7 +214,7 @@ if (options.arch) {
     platform.setArch(options.arch);
 }
 let targetName = options.targets[0];
-let buildType = platform.buildType.toLowerCase();
+let buildType = platform.buildType().toLowerCase();
 if (!options.output) {
     options.output = path.resolve(options.source, "out", buildType, platform.name);
 } else {
@@ -224,7 +225,7 @@ let startMessage = "====================== build " + targetName + "-" + platform
     buildType + " start ======================";
 startMessage += "\n[Source]: " + options.source;
 startMessage += "\n[Output]: " + options.output;
-let versionHash = getHash(options, cmakeArgs);
+let versionHash = getHash(options, cmakeArgs, platform);
 let xcHashFile = path.join(options.output, "." + targetName + ".xcframework.md5");
 let currentXCHash = "";
 if (options.xcframework) {
