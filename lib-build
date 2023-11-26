@@ -211,7 +211,7 @@ if (options.xcframework && options.arch) {
     options.native = true;
 }
 if (options.arch) {
-    platform.setArch(options.arch);
+    platform.archs = [options.arch.toLowerCase()];
 }
 let targetName = options.targets[0];
 let buildType = platform.buildType().toLowerCase();
@@ -223,8 +223,8 @@ if (!options.output) {
 
 let startMessage = "====================== build " + targetName + "-" + platform.name + "-" +
     buildType + " start ======================";
-startMessage += "\n[Source]: " + options.source;
-startMessage += "\n[Output]: " + options.output;
+startMessage += "\n[Source] " + options.source;
+startMessage += "\n[Output] " + options.output;
 let versionHash = getHash(options, cmakeArgs, platform);
 let xcHashFile = path.join(options.output, "." + targetName + ".xcframework.md5");
 let currentXCHash = "";

@@ -90,7 +90,7 @@ if (!options.debug) {
 }
 let platform = Platform.Create(options.platform, options.debug, options.verbose);
 if (options.arch) {
-    platform.setArch(options.arch);
+    platform.archs = [options.arch.toLowerCase()];
 }
 let cmake = CmakeBuild.Create(platform);
 let sourcePath = process.cwd();
