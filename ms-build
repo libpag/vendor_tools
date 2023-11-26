@@ -45,7 +45,7 @@ if (!options.arch) {
     options.arch = options.arch.toLowerCase();
 }
 
-let msBuild = platform.prependVCVars("msbuild", options.arch);
+let msBuild = platform.getCommandPath("msbuild", options.arch);
 let command = msBuild + " " + options.targets.join(" ");
 Utils.exec(command);
 
