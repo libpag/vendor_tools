@@ -28,16 +28,16 @@ const optionDeclarations = [
         description: "Specify the current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\", \"web\"]."
     },
     {
-        name: "debug",
-        shortName: "d",
-        type: "boolean",
-        description: "Build with debug mode enabled."
-    },
-    {
         name: "arch",
         shortName: "a",
         type: "string",
         description: "Builds the specified arch only. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\", \"arm64-simulator\", \"wasm\"]. Ignored if --xcframework is specified."
+    },
+    {
+        name: "debug",
+        shortName: "d",
+        type: "boolean",
+        description: "Build with debug mode enabled."
     },
     {
         name: "incremental",
@@ -147,7 +147,7 @@ function buildArch(options, cmakeArgs, platform, versionHash, message) {
         Utils.log(message);
     }
     let cmake = CmakeBuild.Create(platform);
-    cmake.build(sourcePath, outPath, cmakeOptions);
+    cmake.build(sourcePath, outPath, cmakeOptions, platform.archs);
     if (currentHash) {
         Utils.writeFile(xcHashFile, currentHash);
     }

@@ -113,7 +113,7 @@ function(add_vendor_target targetName)
         file(GLOB SHARED_LIBS third_party/out/${sharedVendor}/${LIBRARY_ENTRY}/*${CMAKE_SHARED_LIBRARY_SUFFIX})
         if (NOT SHARED_LIBS)
             # build shared libraries immediately if not exist, otherwise the rpath will not be set properly at the first time.
-            execute_process(COMMAND node ${VENDOR_TOOLS_DIR}/vendor-build ${sharedVendor} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG}
+            execute_process(COMMAND node ${VENDOR_TOOLS_DIR}/vendor-build ${sharedVendor} -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG}
                     WORKING_DIRECTORY ${CONFIG_DIR})
         endif ()
         file(GLOB SHARED_LIBS third_party/out/${sharedVendor}/${LIBRARY_ENTRY}/*${CMAKE_SHARED_LIBRARY_SUFFIX})
@@ -128,9 +128,9 @@ function(add_vendor_target targetName)
     endif ()
     # Build the vendor libraries of current platform and merge them into a single static library.
     add_custom_command(OUTPUT ${VENDOR_OUTPUT_NAME}
-            COMMAND node ${VENDOR_TOOLS_DIR}/vendor-build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
+            COMMAND node ${VENDOR_TOOLS_DIR}/vendor-build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
             WORKING_DIRECTORY ${CONFIG_DIR}
-            BYPRODUCTS ${VENDOR_OUTPUT_LIB} ${VENDOR_SHARED_LIBRARIES} ${VENDOR_OUTPUT_DIR}/.vendor.sha1
+            BYPRODUCTS ${VENDOR_OUTPUT_LIB} ${VENDOR_SHARED_LIBRARIES} ${VENDOR_OUTPUT_DIR}/.${ARCH}.vendor.md5
             VERBATIM USES_TERMINAL)
     # set the output variables:
     set(${targetName}_VENDOR_TARGET ${VENDOR_OUTPUT_NAME} PARENT_SCOPE)

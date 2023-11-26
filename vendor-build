@@ -2,6 +2,7 @@
 const path = require("path");
 const CommandLine = require('./lib/CommandLine');
 const Vendor = require('./lib/Vendor');
+const Platform = require("./lib/Platform");
 
 const optionDeclarations = [
     {
@@ -17,16 +18,16 @@ const optionDeclarations = [
         description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\", \"web\"]."
     },
     {
+        name: "arch",
+        shortName: "a",
+        type: "string",
+        description: "Builds the specified arch only. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\", \"arm64-simulator\", \"wasm\"]."
+    },
+    {
         name: "output",
         shortName: "o",
         type: "string",
         description: "Publishing all vendor libraries to specified output directory. All shared libraries are copied and all static libraries are merged."
-    },
-    {
-        name: "xcframework",
-        shortName: "x",
-        type: "boolean",
-        description: "Merges all archs of the output static libraries into one xcframework if current platform supports it."
     },
     {
         name: "debug",
@@ -47,7 +48,7 @@ function printHelp(cmd) {
     output += "Syntax:   " + cmd + " [vendorName] [vendorName]... [options]\n";
     output += "Examples: " + cmd + " libpng libwebp\n";
     output += "Examples: " + cmd + " --debug\n";
-    output += "Examples: " + cmd + " -p mac --verbose\n";
+    output += "Examples: " + cmd + " -p mac -a arm64 --verbose\n";
     output += CommandLine.printOptions(optionDeclarations);
     process.stdout.write(output);
 }
@@ -71,5 +72,9 @@ let execPath = path.resolve(process.argv[1]);
 let isCustomBuild = execPath !== __filename;
 let sourcePath = isCustomBuild ? path.dirname(execPath) : process.cwd();
 let configFile = path.resolve(sourcePath, "vendor.json");
-let vendor = new Vendor(configFile, options.platform, options.debug, options.verbose);
-vendor.buildAll(options.targets, options.output, options.xcframework);
+let platform = Platform.Create(options.platform, options.debug, options.verbose);
+if (options.arch) {
+    platform.archs = [options.arch.toLowerCase()];
+}
+let vendor = new Vendor(configFile, platform);
+vendor.buildAll(options.targets, options.output);

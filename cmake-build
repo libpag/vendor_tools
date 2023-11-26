@@ -100,4 +100,4 @@ cmakeOptions.targets = options.targets;
 cmakeOptions.arguments = cmakeArgs;
 cmakeOptions.incremental = options.incremental;
 cmakeOptions.native = options.native;
-cmake.build(sourcePath, outPath, cmakeOptions);
+cmake.build(sourcePath, outPath, cmakeOptions, platform.archs);
