@@ -33,6 +33,11 @@ const optionDeclarations = [
         description: "Generate an additional *.xcworkspace for the exsiting xcode project in the output directory."
     },
     {
+        name: "product",
+        type: "string",
+        description: "Specify the output directory of the built products."
+    },
+    {
         name: "buildsystem",
         shortName: "b",
         type: "boolean",
