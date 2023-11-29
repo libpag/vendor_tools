@@ -43,6 +43,10 @@ elseif (CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
     set(PLATFORM linux)
 endif ()
 
+if (CMAKE_ANDROID_NDK)
+    set(ENV{CMAKE_ANDROID_NDK} ${CMAKE_ANDROID_NDK})
+endif ()
+
 # Sets the default build type to release.
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
