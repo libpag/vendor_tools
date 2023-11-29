@@ -130,7 +130,7 @@ function(add_vendor_target targetName)
     add_custom_command(OUTPUT ${VENDOR_OUTPUT_NAME}
             COMMAND node ${VENDOR_TOOLS_DIR}/vendor-build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
             WORKING_DIRECTORY ${CONFIG_DIR}
-            BYPRODUCTS ${VENDOR_OUTPUT_LIB} ${VENDOR_SHARED_LIBRARIES} ${VENDOR_OUTPUT_DIR}/.${ARCH}.vendor.md5
+            BYPRODUCTS ${VENDOR_OUTPUT_LIB} ${VENDOR_SHARED_LIBRARIES} ${VENDOR_OUTPUT_DIR}/.${ARCH}.md5
             VERBATIM USES_TERMINAL)
     # set the output variables:
     set(${targetName}_VENDOR_TARGET ${VENDOR_OUTPUT_NAME} PARENT_SCOPE)
