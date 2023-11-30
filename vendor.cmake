@@ -44,6 +44,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
 endif ()
 
 if (CMAKE_ANDROID_NDK)
+    message("Using Android NDK: ${CMAKE_ANDROID_NDK}")
     set(ENV{CMAKE_ANDROID_NDK} ${CMAKE_ANDROID_NDK})
 endif ()
 
@@ -128,11 +129,15 @@ function(add_vendor_target targetName)
     set(VENDOR_OUTPUT_NAME ${name}-vendor)
     set(VENDOR_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${VENDOR_OUTPUT_NAME}.dir)
     if (staticVendors)
-        set(VENDOR_OUTPUT_LIB ${VENDOR_OUTPUT_DIR}/${ARCH}/lib${VENDOR_OUTPUT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX})
+        set(VENDOR_OUTPUT_LIB "${VENDOR_OUTPUT_DIR}/${ARCH}/lib${VENDOR_OUTPUT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    endif ()
+
+    if (CMAKE_ANDROID_NDK)
+        set(ENV_CMD ${CMAKE_COMMAND} -E env CMAKE_ANDROID_NDK=${CMAKE_ANDROID_NDK})
     endif ()
     # Build the vendor libraries of current platform and merge them into a single static library.
     add_custom_command(OUTPUT ${VENDOR_OUTPUT_NAME}
-            COMMAND node ${VENDOR_TOOLS_DIR}/vendor-build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
+            COMMAND ${ENV_CMD} node ${VENDOR_TOOLS_DIR}/vendor-build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
             WORKING_DIRECTORY ${CONFIG_DIR}
             BYPRODUCTS ${VENDOR_OUTPUT_LIB} ${VENDOR_SHARED_LIBRARIES} ${VENDOR_OUTPUT_DIR}/.${ARCH}.md5
             VERBATIM USES_TERMINAL)
