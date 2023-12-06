@@ -148,4 +148,8 @@ function(add_vendor_target targetName)
 endfunction()
 
 # Synchronizes the third-party dependencies of current platform.
-execute_process(COMMAND depsync ${PLATFORM} WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+if(WIN32)
+    execute_process(COMMAND cmd /C depsync ${PLATFORM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} ENCODING NONE)
+else()
+    execute_process(COMMAND depsync ${PLATFORM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
