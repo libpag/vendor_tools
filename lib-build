@@ -237,8 +237,9 @@ if (!options.debug) {
     options.strip = libraryTool.stripAndGenerateSymbolFile !== undefined;
 }
 
-let startMessage = "====================== build " + targetName + "-" + platform.name + "-" +
-    buildType + " start ======================";
+let startMessage = "========================== build " + targetName + "-" + platform.name + "-" +
+    buildType + " start ==========================";
+let startTime = performance.now();
 startMessage += "\n[Source] " + options.source;
 startMessage += "\n[Output] " + options.output;
 let versionHash = getHash(options, cmakeArgs, platform);
@@ -283,7 +284,10 @@ if (!options.incremental) {
     Utils.deletePath(path.join(options.output, "build-" + targetName));
 }
 
+let costTime = performance.now() - startTime;
+let costTimeString = (costTime / 1000).toFixed(1);
+Utils.log("Building  finished in " + costTimeString + " seconds.");
 if (!startMessage) {
-    Utils.log("====================== build " + targetName + "-" + platform.name + "-" +
-        buildType + " end ======================");
+    Utils.log("========================== build " + targetName + "-" + platform.name + "-" +
+        buildType + " end ("+costTimeString+"s) ==========================");
 }
