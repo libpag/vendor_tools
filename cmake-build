@@ -6,10 +6,16 @@ const Platform = require("./lib/Platform");
 
 const optionDeclarations = [
     {
+        name: "source",
+        shortName: "s",
+        type: "string",
+        description: "Specify the project source path. Default is current working directory."
+    },
+    {
         name: "output",
         shortName: "o",
         type: "string",
-        description: "Specifies the output path."
+        description: "Specifies the output path. Default is [source]/out."
     },
     {
         name: "platform",
@@ -40,6 +46,11 @@ const optionDeclarations = [
         shortName: "d",
         type: "boolean",
         description: "Builds with debug mode enabled."
+    },
+    {
+        name: "symbols",
+        type: "boolean",
+        description: "Generate the debug symbols. Default is true if --debug is specified."
     },
     {
         name: "verbose",
@@ -93,11 +104,12 @@ if (options.arch) {
     platform.archs = [options.arch.toLowerCase()];
 }
 let cmake = CmakeBuild.Create(platform);
-let sourcePath = process.cwd();
+let sourcePath = options.source ? path.resolve(options.source) : process.cwd();
 let outPath = options.output ? path.resolve(options.output) : path.join(sourcePath, "out");
 let cmakeOptions = {};
 cmakeOptions.targets = options.targets;
 cmakeOptions.arguments = cmakeArgs;
 cmakeOptions.incremental = options.incremental;
 cmakeOptions.native = options.native;
+cmakeOptions.symbols = options.symbols;
 cmake.build(sourcePath, outPath, cmakeOptions, platform.archs);

@@ -55,7 +55,7 @@ const optionDeclarations = [
         name: "native",
         shortName: "n",
         type: "boolean",
-        description: "Use the native generator with cmake to build the library if current platform supports it. Set to true if --xcframework is specified."
+        description: "Use the native generator with cmake to build the library if current platform supports it. Default is true if --xcframework is specified."
     },
     {
         name: "help",
@@ -81,6 +81,9 @@ function getHash(options, cmakeArgs, platform) {
     list.push(options.debug ? "debug" : "release");
     list.push(platform.name);
     list.push(platform.toolVersion());
+    if (options.strip) {
+        list.push("strip");
+    }
     list = list.concat(cmakeArgs);
     let sourcePath = options.source;
     let targetName = options.targets[0];
@@ -125,15 +128,14 @@ function getHash(options, cmakeArgs, platform) {
     return hash.digest('hex')
 }
 
-function buildArch(options, cmakeArgs, platform, versionHash, message) {
+function buildArch(options, cmakeArgs, platform, libraryTool, versionHash, message) {
     let targetName = options.targets[0];
     let arch = platform.archs[0];
-    let buildType = platform.buildType().toLowerCase();
     let sourcePath = options.source;
     let outPath = options.output;
     let xcHashFile = path.join(outPath, "." + targetName + "." + arch + ".md5");
     let currentHash = Utils.readFile(xcHashFile);
-    if (!options.xcframework && versionHash === currentHash) {
+    if (versionHash === currentHash) {
         return false;
     }
     Utils.deletePath(xcHashFile);
@@ -143,11 +145,21 @@ function buildArch(options, cmakeArgs, platform, versionHash, message) {
     cmakeOptions.arguments = cmakeArgs;
     cmakeOptions.incremental = true;
     cmakeOptions.native = options.native;
+    cmakeOptions.symbols = options.strip;
     if (message) {
         Utils.log(message);
     }
     let cmake = CmakeBuild.Create(platform);
-    cmake.build(sourcePath, outPath, cmakeOptions, platform.archs);
+    let libraryMap = cmake.build(sourcePath, outPath, cmakeOptions, platform.archs);
+    if (options.strip) {
+        let libraries = libraryMap[arch];
+        for (let library of libraries) {
+            let result = libraryTool.stripAndGenerateSymbolFile(library, arch);
+            if (!result) {
+                libraryTool.stripDebugSymbols(library, arch)
+            }
+        }
+    }
     if (currentHash) {
         Utils.writeFile(xcHashFile, currentHash);
     }
@@ -206,19 +218,23 @@ if (!options.debug) {
     }
 }
 let platform = Platform.Create(options.platform, options.debug, true);
-if (options.xcframework && options.arch) {
-    delete options.arch;
+let libraryTool = LibraryTool.Create(platform);
+if (options.xcframework) {
     options.native = true;
+    delete options.arch;
 }
 if (options.arch) {
     platform.archs = [options.arch.toLowerCase()];
 }
 let targetName = options.targets[0];
-let buildType = platform.buildType().toLowerCase();
+let buildType = platform.debug ? "debug" : "release";
 if (!options.output) {
     options.output = path.resolve(options.source, "out", buildType, platform.name);
 } else {
     options.output = path.resolve(options.output);
+}
+if (!options.debug) {
+    options.strip = libraryTool.stripAndGenerateSymbolFile !== undefined;
 }
 
 let startMessage = "====================== build " + targetName + "-" + platform.name + "-" +
@@ -241,7 +257,7 @@ if (!options.incremental) {
 let archs = platform.archs;
 for (let arch of archs) {
     platform.archs = [arch];
-    if (buildArch(options, cmakeArgs, platform, versionHash, startMessage)) {
+    if (buildArch(options, cmakeArgs, platform, libraryTool, versionHash, startMessage)) {
         startMessage = "";
     }
 }
@@ -253,8 +269,7 @@ if (options.xcframework) {
         startMessage = "";
     }
     currentXCHash = versionHash;
-    let libraryTool = LibraryTool.Create(platform);
-    libraryTool.createXCFramework(options.output, options.output, false, true, function (library) {
+    libraryTool.createXCFramework(options.output, options.output, false, function (library) {
         let ext = path.extname(library);
         let name = path.parse(library).name;
         return ext && name.indexOf(targetName) !== -1;
