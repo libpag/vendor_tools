@@ -24,6 +24,12 @@ const optionDeclarations = [
         description: "Builds the specified arch only. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\", \"arm64-simulator\", \"wasm\"]."
     },
     {
+        name: "xcframework",
+        shortName: "x",
+        type: "boolean",
+        description: "Merges all arches of the output libraries into one xcframework if current platform supports it."
+    },
+    {
         name: "output",
         shortName: "o",
         type: "string",
@@ -68,6 +74,9 @@ if (!options.debug) {
         options.debug = true;
     }
 }
+if (options.xcframework) {
+    delete options.arch;
+}
 let execPath = path.resolve(process.argv[1]);
 let isCustomBuild = execPath !== __filename;
 let sourcePath = isCustomBuild ? path.dirname(execPath) : process.cwd();
@@ -77,4 +86,4 @@ if (options.arch) {
     platform.archs = [options.arch.toLowerCase()];
 }
 let vendor = new Vendor(configFile, platform);
-vendor.buildAll(options.targets, options.output);
+vendor.buildAll(options.targets, options.output, options.xcframework);

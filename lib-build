@@ -49,7 +49,7 @@ const optionDeclarations = [
         name: "xcframework",
         shortName: "x",
         type: "boolean",
-        description: "Merges all archs of the output libraries into one xcframework if current platform supports it."
+        description: "Merges all arches of the output libraries into one xcframework if current platform supports it."
     },
     {
         name: "native",
