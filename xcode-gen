@@ -9,10 +9,16 @@ const KnownArchs = ["x64", "arm64"];
 
 const optionDeclarations = [
     {
+        name: "source",
+        shortName: "s",
+        type: "string",
+        description: "Specify the root of the cmake project. Default is current working directory."
+    },
+    {
         name: "output",
         shortName: "o",
         type: "string",
-        description: "Specify the output path of the generated project."
+        description: "Specify the output path of the generated project. Default is current working directory."
     },
     {
         name: "platform",
@@ -24,18 +30,13 @@ const optionDeclarations = [
         name: "arch",
         shortName: "a",
         type: "string",
-        description: "Specify the arch of the generated project. Supported archs: [\"x64\", \"arm64\"]."
+        description: "Specify the arch of the generated project. Supported arches: [\"x64\", \"arm64\"]."
     },
     {
         name: "workspace",
         shortName: "w",
         type: "boolean",
-        description: "Generate an additional *.xcworkspace for the exsiting xcode project in the output directory."
-    },
-    {
-        name: "product",
-        type: "string",
-        description: "Specify the output directory of the built products."
+        description: "Generate an additional *.xcworkspace for the existing xcode project in the output directory."
     },
     {
         name: "buildsystem",
@@ -75,11 +76,16 @@ for (let arg of args) {
 }
 let options = CommandLine.parse(cmdArgs, optionDeclarations, KnownPlatforms, KnownArchs);
 options.cmakeArgs = cmakeArgs;
+if (!options.source) {
+    if (options.targets && options.targets.length === 1) {
+        options.source = options.targets[0];
+        delete options.targets;
+    } else {
+        options.source = process.cwd();
+    }
+}
 if (!options.output) {
     options.output = process.cwd();
-}
-if (!options.targets || options.targets.length !== 1) {
-    options.help = true;
 }
 if (options.help) {
     printHelp(cmd);
