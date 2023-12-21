@@ -2,6 +2,7 @@
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
+const {performance} = require('perf_hooks');
 const CommandLine = require('./lib/CommandLine');
 const CmakeBuild = require("./lib/CMake");
 const Platform = require("./lib/Platform");
@@ -289,5 +290,5 @@ let costTimeString = (costTime / 1000).toFixed(1);
 Utils.log("Building  finished in " + costTimeString + " seconds.");
 if (!startMessage) {
     Utils.log("========================== build " + targetName + "-" + platform.name + "-" +
-        buildType + " end ("+costTimeString+"s) ==========================");
+        buildType + " end (" + costTimeString + "s) ==========================");
 }
