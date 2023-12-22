@@ -286,9 +286,8 @@ if (!options.incremental) {
 }
 
 let costTime = performance.now() - startTime;
-let costTimeString = (costTime / 1000).toFixed(1);
-Utils.log("Building  finished in " + costTimeString + " seconds.");
+let costTimeString = Utils.formatTime(costTime);
 if (!startMessage) {
     Utils.log("========================== build " + targetName + "-" + platform.name + "-" +
-        buildType + " end (" + costTimeString + "s) ==========================");
+        buildType + " end (" + costTimeString + ") ==========================");
 }

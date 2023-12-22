@@ -24,16 +24,16 @@ const optionDeclarations = [
         description: "Builds the specified arch only. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\", \"arm64-simulator\", \"wasm\"]."
     },
     {
-        name: "xcframework",
-        shortName: "x",
-        type: "boolean",
-        description: "Merges all arches of the output libraries into one xcframework if current platform supports it."
-    },
-    {
         name: "output",
         shortName: "o",
         type: "string",
         description: "Publishing all vendor libraries to specified output directory. All shared libraries are copied and all static libraries are merged."
+    },
+    {
+        name: "xcframework",
+        shortName: "x",
+        type: "boolean",
+        description: "Merges all arches of the output libraries into one xcframework if current platform supports it. Ignored if --output is not specified."
     },
     {
         name: "debug",
