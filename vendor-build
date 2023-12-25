@@ -6,10 +6,10 @@ const Platform = require("./lib/Platform");
 
 const optionDeclarations = [
     {
-        name: "help",
-        shortName: "h",
-        type: "boolean",
-        description: "Prints help message."
+        name: "source",
+        shortName: "s",
+        type: "string",
+        description: "Specify the source path where the vendor.json is located. Default is current working directory."
     },
     {
         name: "platform",
@@ -46,7 +46,13 @@ const optionDeclarations = [
         shortName: "v",
         type: "boolean",
         description: "Prints message in verbose mode."
-    }
+    },
+    {
+        name: "help",
+        shortName: "h",
+        type: "boolean",
+        description: "Prints help message."
+    },
 ];
 
 function printHelp(cmd) {
@@ -79,8 +85,15 @@ if (options.xcframework) {
 }
 let execPath = path.resolve(process.argv[1]);
 let isCustomBuild = execPath !== __filename;
-let sourcePath = isCustomBuild ? path.dirname(execPath) : process.cwd();
-let configFile = path.resolve(sourcePath, "vendor.json");
+if (!options.source) {
+    options.source = isCustomBuild ? path.dirname(execPath) : process.cwd();
+} else {
+    options.source = path.resolve(options.source);
+}
+let configFile = path.join(options.source, "vendor.json");
+if (options.output) {
+    options.output = path.resolve(options.output);
+}
 let platform = Platform.Create(options.platform, options.debug, options.verbose);
 if (options.arch) {
     platform.archs = [options.arch.toLowerCase()];
