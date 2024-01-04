@@ -111,6 +111,7 @@ function(add_vendor_target targetName)
     endforeach ()
 
     if (NOT sharedVendors AND NOT staticVendors)
+        add_custom_target(${targetName} COMMENT "Generating ${targetName}")
         return()
     endif ()
 
@@ -140,7 +141,8 @@ function(add_vendor_target targetName)
     set(VENDOR_CMD ${ENV_CMD} node ${VENDOR_TOOLS_DIR}/vendor-build -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR})
 
     add_custom_target(${targetName} COMMAND ${VENDOR_CMD} ${staticVendors} ${sharedVendors} WORKING_DIRECTORY ${CONFIG_DIR}
-            VERBATIM USES_TERMINAL BYPRODUCTS ${VENDOR_STATIC_LIBRARIES} ${VENDOR_SHARED_LIBRARIES} ${VENDOR_OUTPUT_DIR}/.${ARCH}.md5)
+            BYPRODUCTS ${VENDOR_STATIC_LIBRARIES} ${VENDOR_SHARED_LIBRARIES} ${VENDOR_OUTPUT_DIR}/.${ARCH}.md5
+            VERBATIM USES_TERMINAL COMMENT "Generating ${targetName}")
 
     # set the target properties:
     if (VENDOR_STATIC_LIBRARIES)
