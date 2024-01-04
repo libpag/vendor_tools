@@ -82,7 +82,7 @@ function(merge_libraries_into target)
             VERBATIM USES_TERMINAL)
 endfunction()
 
-# add_vendor_target(targetName [STATIC_VENDORS] [vendorNames...] [SHARED_VENDORS] [vendorNames...] [CONFIG_DIR] [configDir])
+# add_vendor_target(targetName [STATIC_VENDORS] <vendorNames...> [SHARED_VENDORS] <vendorNames...> [CONFIG_DIR] <configDir>)
 function(add_vendor_target targetName)
     set(IS_SHARED FALSE)
     set(IS_CONFIG_DIR FALSE)
@@ -114,10 +114,19 @@ function(add_vendor_target targetName)
         return()
     endif ()
 
+    set(VENDOR_STATIC_LIBRARIES)
+    set(VENDOR_SHARED_LIBRARIES)
+    set(VENDOR_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${targetName}.dir)
+
+    if (staticVendors)
+        set(VENDOR_OUTPUT_LIB "${VENDOR_OUTPUT_DIR}/${ARCH}/lib${targetName}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+        list(APPEND VENDOR_STATIC_LIBRARIES ${VENDOR_OUTPUT_LIB})
+    endif ()
+
     foreach (sharedVendor ${sharedVendors})
         file(GLOB SHARED_LIBS third_party/out/${sharedVendor}/${LIBRARY_ENTRY}/*${CMAKE_SHARED_LIBRARY_SUFFIX})
         if (NOT SHARED_LIBS)
-            # build shared libraries immediately if not exist, otherwise the rpath will not be set properly at the first time.
+            # Build shared libraries immediately if they don't exist to gather output files initially.
             execute_process(COMMAND node ${VENDOR_TOOLS_DIR}/vendor-build ${sharedVendor} -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG}
                     WORKING_DIRECTORY ${CONFIG_DIR})
         endif ()
@@ -125,31 +134,77 @@ function(add_vendor_target targetName)
         list(APPEND VENDOR_SHARED_LIBRARIES ${SHARED_LIBS})
     endforeach ()
 
-    string(TOLOWER ${targetName} name)
-    set(VENDOR_OUTPUT_NAME ${name}-vendor)
-    set(VENDOR_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${VENDOR_OUTPUT_NAME}.dir)
-    if (staticVendors)
-        set(VENDOR_OUTPUT_LIB "${VENDOR_OUTPUT_DIR}/${ARCH}/lib${VENDOR_OUTPUT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-    endif ()
-
     if (CMAKE_ANDROID_NDK)
         set(ENV_CMD ${CMAKE_COMMAND} -E env CMAKE_ANDROID_NDK=${CMAKE_ANDROID_NDK})
     endif ()
-    # Build the vendor libraries of current platform and merge them into a single static library.
-    add_custom_command(OUTPUT ${VENDOR_OUTPUT_NAME}
-            COMMAND ${ENV_CMD} node ${VENDOR_TOOLS_DIR}/vendor-build ${staticVendors} ${sharedVendors} -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR}
-            WORKING_DIRECTORY ${CONFIG_DIR}
-            BYPRODUCTS ${VENDOR_OUTPUT_LIB} ${VENDOR_SHARED_LIBRARIES} ${VENDOR_OUTPUT_DIR}/.${ARCH}.md5
-            VERBATIM USES_TERMINAL)
-    # set the output variables:
-    set(${targetName}_VENDOR_TARGET ${VENDOR_OUTPUT_NAME} PARENT_SCOPE)
-    set(${targetName}_VENDOR_STATIC_LIBRARIES ${VENDOR_OUTPUT_LIB} PARENT_SCOPE)
-    set(${targetName}_VENDOR_SHARED_LIBRARIES ${VENDOR_SHARED_LIBRARIES} PARENT_SCOPE)
+    set(VENDOR_CMD ${ENV_CMD} node ${VENDOR_TOOLS_DIR}/vendor-build -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR})
+
+    add_custom_target(${targetName} COMMAND ${VENDOR_CMD} ${staticVendors} ${sharedVendors} WORKING_DIRECTORY ${CONFIG_DIR}
+            VERBATIM USES_TERMINAL BYPRODUCTS ${VENDOR_STATIC_LIBRARIES} ${VENDOR_SHARED_LIBRARIES} ${VENDOR_OUTPUT_DIR}/.${ARCH}.md5)
+
+    # set the target properties:
+    if (VENDOR_STATIC_LIBRARIES)
+        string(REPLACE ";" " " VENDOR_STATIC_LIBS "${VENDOR_STATIC_LIBRARIES}")
+        set_target_properties(${targetName} PROPERTIES STATIC_LIBRARIES ${VENDOR_STATIC_LIBS})
+    endif ()
+    if (VENDOR_SHARED_LIBRARIES)
+        string(REPLACE ";" " " VENDOR_SHARED_LIBS "${VENDOR_SHARED_LIBRARIES}")
+        set_target_properties(${targetName} PROPERTIES SHARED_LIBRARIES ${VENDOR_SHARED_LIBS})
+    endif ()
+endfunction()
+
+
+# find_vendor_libraries(target [STATIC] <STATIC_LIBRARIES_VAR> [SHARED] <SHARED_LIBRARIES_VAR>)
+function(find_vendor_libraries target)
+    set(STATIC_LIBRARIES_VAR)
+    set(SHARED_LIBRARIES_VAR)
+    set(IS_STATIC FALSE)
+    set(IS_SHARED FALSE)
+    foreach (arg ${ARGN})
+        if (arg STREQUAL "STATIC")
+            set(IS_STATIC TRUE)
+            continue()
+        endif ()
+        if (arg STREQUAL "SHARED")
+            set(IS_SHARED TRUE)
+            continue()
+        endif ()
+        if (IS_STATIC)
+            set(STATIC_LIBRARIES_VAR ${arg})
+            set(IS_STATIC FALSE)
+        elseif (IS_SHARED)
+            set(SHARED_LIBRARIES_VAR ${arg})
+            set(IS_SHARED FALSE)
+        endif ()
+    endforeach ()
+
+    if (NOT STATIC_LIBRARIES_VAR AND NOT SHARED_LIBRARIES_VAR)
+        return()
+    endif ()
+
+    get_target_property(VENDOR_STATIC_LIBS ${target} STATIC_LIBRARIES)
+    string(REPLACE " " ";" VENDOR_STATIC_LIBRARIES "${VENDOR_STATIC_LIBS}")
+    get_target_property(VENDOR_SHARED_LIBS ${target} SHARED_LIBRARIES)
+    string(REPLACE " " ";" VENDOR_SHARED_LIBRARIES "${VENDOR_SHARED_LIBS}")
+    if (STATIC_LIBRARIES_VAR)
+        if (VENDOR_STATIC_LIBRARIES)
+            set(${STATIC_LIBRARIES_VAR} ${VENDOR_STATIC_LIBRARIES} PARENT_SCOPE)
+        else ()
+            set(${STATIC_LIBRARIES_VAR} PARENT_SCOPE)
+        endif ()
+    endif ()
+    if (SHARED_LIBRARIES_VAR)
+        if (VENDOR_SHARED_LIBRARIES)
+            set(${SHARED_LIBRARIES_VAR} ${VENDOR_SHARED_LIBRARIES} PARENT_SCOPE)
+        else ()
+            set(${SHARED_LIBRARIES_VAR} PARENT_SCOPE)
+        endif ()
+    endif ()
 endfunction()
 
 # Synchronizes the third-party dependencies of current platform.
-if(WIN32)
+if (WIN32)
     execute_process(COMMAND cmd /C depsync ${PLATFORM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} ENCODING NONE)
-else()
+else ()
     execute_process(COMMAND depsync ${PLATFORM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-endif()
+endif ()

@@ -39,12 +39,6 @@ const optionDeclarations = [
         description: "Generate an additional *.xcworkspace for the existing xcode project in the output directory."
     },
     {
-        name: "buildsystem",
-        shortName: "b",
-        type: "boolean",
-        description: "Pass the '-T buildsystem=1' option to cmake to use old build system under Xcode 12."
-    },
-    {
         name: "help",
         shortName: "h",
         type: "boolean",
