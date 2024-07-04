@@ -15,7 +15,7 @@ const optionDeclarations = [
         name: "platform",
         shortName: "p",
         type: "string",
-        description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\", \"web\"]."
+        description: "Specifies current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\", \"web\", \"ohos\"]."
     },
     {
         name: "xcframework",
