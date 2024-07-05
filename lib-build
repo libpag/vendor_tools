@@ -26,7 +26,7 @@ const optionDeclarations = [
         name: "platform",
         shortName: "p",
         type: "string",
-        description: "Specify the current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\", \"web\"]."
+        description: "Specify the current platform. Supported platforms: [\"win\", \"mac\", \"ios\", \"linux\", \"android\", \"web\", \"ohos\"]."
     },
     {
         name: "arch",
