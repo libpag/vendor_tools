@@ -39,8 +39,14 @@ if (EMSCRIPTEN)
     set(PLATFORM web)
 elseif (OHOS)
     set(PLATFORM ohos)
+    message("Using OHOS NDK: ${OHOS_SDK_NATIVE}")
+    set(ENV{CMAKE_OHOS_NDK} ${OHOS_SDK_NATIVE})
+    set(ENV_CMD ${CMAKE_COMMAND} -E env CMAKE_OHOS_NDK=${OHOS_SDK_NATIVE})
 elseif (ANDROID)
     set(PLATFORM android)
+    message("Using Android NDK: ${CMAKE_ANDROID_NDK}")
+    set(ENV{CMAKE_ANDROID_NDK} ${CMAKE_ANDROID_NDK})
+    set(ENV_CMD ${CMAKE_COMMAND} -E env CMAKE_ANDROID_NDK=${CMAKE_ANDROID_NDK})
 elseif (IOS)
     set(PLATFORM ios)
 elseif (APPLE)
@@ -51,16 +57,6 @@ elseif (WIN32)
 elseif (CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
     set(LINUX TRUE)
     set(PLATFORM linux)
-endif ()
-
-if (OHOS_SDK_NATIVE)
-    message("Using OHOS NDK: ${OHOS_SDK_NATIVE}")
-    set(ENV{CMAKE_OHOS_NDK} ${OHOS_SDK_NATIVE})
-endif ()
-
-if (CMAKE_ANDROID_NDK)
-    message("Using Android NDK: ${CMAKE_ANDROID_NDK}")
-    set(ENV{CMAKE_ANDROID_NDK} ${CMAKE_ANDROID_NDK})
 endif ()
 
 # Sets the default build type to release.
@@ -92,7 +88,7 @@ function(merge_libraries_into target)
     endif ()
     separate_arguments(STATIC_LIBRARIES_LIST NATIVE_COMMAND "\"${STATIC_LIBRARIES}\"")
     add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND node ${VENDOR_TOOLS_DIR}/lib-merge -p ${PLATFORM} -a ${ARCH} -v
+            COMMAND ${ENV_CMD} node ${VENDOR_TOOLS_DIR}/lib-merge -p ${PLATFORM} -a ${ARCH} -v
             $<TARGET_FILE:${target}> ${STATIC_LIBRARIES_LIST} -o $<TARGET_FILE:${target}>
             VERBATIM USES_TERMINAL)
 endfunction()
@@ -143,16 +139,13 @@ function(add_vendor_target targetName)
         file(GLOB SHARED_LIBS third_party/out/${sharedVendor}/${LIBRARY_ENTRY}/*${CMAKE_SHARED_LIBRARY_SUFFIX})
         if (NOT SHARED_LIBS)
             # Build shared libraries immediately if they don't exist to gather output files initially.
-            execute_process(COMMAND node ${VENDOR_TOOLS_DIR}/vendor-build ${sharedVendor} -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG}
+            execute_process(COMMAND ${ENV_CMD} node ${VENDOR_TOOLS_DIR}/vendor-build ${sharedVendor} -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG}
                     WORKING_DIRECTORY ${CONFIG_DIR})
         endif ()
         file(GLOB SHARED_LIBS third_party/out/${sharedVendor}/${LIBRARY_ENTRY}/*${CMAKE_SHARED_LIBRARY_SUFFIX})
         list(APPEND VENDOR_SHARED_LIBRARIES ${SHARED_LIBS})
     endforeach ()
 
-    if (CMAKE_ANDROID_NDK)
-        set(ENV_CMD ${CMAKE_COMMAND} -E env CMAKE_ANDROID_NDK=${CMAKE_ANDROID_NDK})
-    endif ()
     set(VENDOR_CMD ${ENV_CMD} node ${VENDOR_TOOLS_DIR}/vendor-build -p ${PLATFORM} -a ${ARCH} -v ${VENDOR_DEBUG_FLAG} -o ${VENDOR_OUTPUT_DIR})
 
     add_custom_target(${targetName} COMMAND ${VENDOR_CMD} ${staticVendors} ${sharedVendors} WORKING_DIRECTORY ${CONFIG_DIR}
