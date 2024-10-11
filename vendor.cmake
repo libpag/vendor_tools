@@ -1,7 +1,11 @@
 include_guard(GLOBAL)
 
 if (EMSCRIPTEN)
-    set(ARCH wasm)
+    if (EMSCRIPTEN_PTHREADS)
+        set(ARCH wasm-mt)
+    else()
+        set(ARCH wasm)
+    endif()
 elseif (OHOS)
     if (OHOS_ARCH STREQUAL "arm64-v8a")
         set(ARCH arm64)

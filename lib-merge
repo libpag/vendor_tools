@@ -27,7 +27,7 @@ const optionDeclarations = [
         name: "arch",
         shortName: "a",
         type: "string",
-        description: "Specifies the arch of current platform. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\", \"arm64-simulator\", \"wasm\"]. Ignored if --xcframework is specified."
+        description: "Specifies the arch of current platform. Supported archs: [\"x86\", \"x64\", \"arm\", \"arm64\", \"arm64-simulator\", \"wasm\", \"wasm-mt\"]. Ignored if --xcframework is specified."
     },
     {
         name: "output",
