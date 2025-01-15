@@ -1,20 +1,17 @@
-# vendor_tools
-A toolset for building vendor libraries based on Node.js, providing a unified way to build libraries across all platforms.
+## Introduction
+A set of tools for building vendor libraries using Node.js, providing a consistent way to build libraries across all 
+platforms. Initially developed as built-in tools for the [libpag](https://github.com/Tencent/libpag) project, it has 
+been extracted as a standalone project to offer a more flexible and reusable solution for building vendor libraries. 
+Designed to work with CMake projects, it provides command-line tools to build vendor libraries defined in a `vendor.json`
+file and cache the build results. The toolset supports building libraries on `Windows`, `macOS`, `iOS`, `Android`, 
+`Linux`, `Web`, and `HarmonyOS`.
 
-Originally developed as built-in tools for the [libpag](https://github.com/Tencent/libpag) and [tgfx](https://github.com/Tencent/tgfx) 
-projects, it has now been extracted as a standalone project to offer a more flexible and reusable solution for building 
-vendor libraries.
+## Configuration
 
-
-# Command Line Tools
-
-## vendor-build
-
-### Description
-Used to build vendor libraries defined in `vendor.json`. For example:
+The `vendor.json` file is used to define the vendor libraries to be built. Here is an example:
 
 ```json
- {
+{
   "source": "third_party",
   "out": "third_party/out",
   "vendors": [
@@ -95,14 +92,21 @@ Used to build vendor libraries defined in `vendor.json`. For example:
 }
 ```
 
-Check out the [vendor.json](https://github.com/Tencent/tgfx/blob/main/vendor.json) file in the tgfx project for more examples.
+For more examples, check out the [vendor.json](https://github.com/Tencent/tgfx/blob/main/vendor.json) file in the tgfx project.
 
-### Syntax:   
+## Command Line Tools
+
+### vendor-build
+
+Used to build vendor libraries defined in `vendor.json` and cache the build results. It automatically detects changes in 
+`vendor.json` and rebuilds as needed.
+
+#### Syntax:   
 ```sh
 node vendor-build [vendorName] [vendorName]... [Options]
 ```
 
-### Options
+#### Options
 - `--source`, `-s`: Specify the source path of `vendor.json`. Default is the current working directory.
 - `--platform`, `-p`: Specify the current platform. Supported platforms: `["win", "mac", "ios", "linux", "android", "web", "ohos"]`.
 - `--arch`, `-a`: Build only for the specified architecture. Supported architectures: `["x86", "x64", "arm", "arm64", "arm64-simulator", "wasm", "wasm-mt"]`.
@@ -112,25 +116,24 @@ node vendor-build [vendorName] [vendorName]... [Options]
 - `--verbose`, `-v`: Print messages in verbose mode.
 - `--help`, `-h`: Print help information.
 
-### Examples
+#### Examples
 ```sh
 node vendor-build libpng libwebp
 node vendor-build --debug
 node vendor-build -p mac -a arm64 --verbose
 ```
 
-## cmake-build
+### cmake-build
 
-### Description
 Used to build CMake projects consistently across all platforms, including Windows, macOS, iOS, Android, Linux, Web, and 
 HarmonyOS.
 
-### Syntax:   
+#### Syntax:   
 ```sh
 node cmake-build  [cmakeTarget] [cmakeTarget]... [Options] [-Dcmake_variable=value]... [-Dcmake_variable=value]
 ```
 
-### Options
+#### Options
 - `--source`, `-s`: Specify the source path of `CMakeLists.txt`. Default is the current working directory.
 - `--output`, `-o`: Specifies the output path. Default is [source]/out.
 - `--platform`, `-p`: Specify the current platform. Supported platforms: `["win", "mac", "ios", "linux", "android", "web", "ohos"]`.
@@ -144,26 +147,24 @@ node cmake-build  [cmakeTarget] [cmakeTarget]... [Options] [-Dcmake_variable=val
   
 You can also pass any other cmake variables with a `-D` prefix to `cmake-build`, and they will be forwarded to the `cmake` command.
 
-### Examples
+#### Examples
 ```sh
 node cmake-build pag -p ios -o ./out/ios
 node cmake-build pag pag-staic --debug
 node cmake-build pag -DTGFX_USE_WEBP_ENCODE=ON -p mac --verbose
 ```
 
-## lib-build
-
-### Description
+### lib-build
 
 It wraps `cmake-build` to build CMake projects with a caching mechanism. It automatically detects changes in the source 
 files and rebuilds the project if necessary.
 
-### Syntax:   
+#### Syntax:   
 ```sh
 node lib-build [cmakeTarget] [Options] [-Dcmake_variable=value]... [-Dcmake_variable=value]
 ```
 
-### Options
+#### Options
 - `--source`, `-s`: Specify the source path of `CMakeLists.txt`. Default is the current working directory.
 - `--output`, `-o`: Specifies the output path. Default is [source]/out.
 - `--platform`, `-p`: Specify the current platform. Supported platforms: `["win", "mac", "ios", "linux", "android", "web", "ohos"]`.
@@ -177,25 +178,24 @@ node lib-build [cmakeTarget] [Options] [-Dcmake_variable=value]... [-Dcmake_vari
 You can also pass any other cmake variables with a `-D` prefix to `lib-build`, and they will be forwarded to the `cmake` command.
 By default, debug symbols will be stripped unless the `--debug` flag is specified.
 
-### Examples
+#### Examples
 ```sh
 node lib-build pag -p ios -o ./out/ios
 node lib-build pag --debug
 node lib-build pag -DTGFX_USE_WEBP_ENCODE=ON -p mac
 ```
 
-## lib-merge
+### lib-merge
 
-### Description
-Used to merge static libraries into a single library.
+Used to merge static libraries into a single library without worrying about the platform-specific commands.
 
-### Syntax:   
+#### Syntax:   
 ```sh
 node lib-merge [libraryName] [libraryName]... [Options]
 ```
 
 
-### Options
+#### Options
 - `--platform`, `-p`: Specifies the current platform. Supported platforms: `["win", "mac", "ios", "linux", "android", "web", "ohos"]`.
 - `--xcframework`, `-x`: Merges all archs in the specified library path into one `xcframework` if the current platform supports it.
 - `--arch`, `-a`: Specifies the arch of the current platform. Supported archs: `["x86", "x64", "arm", "arm64", "arm64-simulator", "wasm", "wasm-mt"]`. Ignored if `--xcframework` is specified.
@@ -203,23 +203,22 @@ node lib-merge [libraryName] [libraryName]... [Options]
 - `--verbose`, `-v`: Prints messages in verbose mode.
 - `--help`, `-h`: Prints help information.
 
-### Examples
+#### Examples
 ```sh
 node lib-merge libpng.a libwebp.a -o libvendor.a -p mac -a x64
 node lib-merge -x vendor/ffavc -p mac -o out/ffavc
 ```
 
-## xcode-gen
+### xcode-gen
 
-### Description
 Used to generate Xcode projects for CMake projects.
 
-### Syntax:   
+#### Syntax:   
 ```sh
 node xcode-gen sourcePath [options] [-Dcmake_variable=value]... [-Dcmake_variable=value]
 ```
 
-### Options
+#### Options
 - `--source`, `-s`: Specify the root of the cmake project. Default is the current working directory.
 - `--output`, `-o`: Specify the output path of the generated project. Default is the current working directory.
 - `--platform`, `-p`: Specify the platform to generate. Supported platforms: `["mac", "ios", "simulator"]`.
@@ -229,35 +228,34 @@ node xcode-gen sourcePath [options] [-Dcmake_variable=value]... [-Dcmake_variabl
 
 You can also pass any other cmake variables with a `-D` prefix to `xcode-gen`, and they will be forwarded to the `cmake` command.
 
-### Examples
+#### Examples
 ```sh
 node xcode-gen  ./source -p mac -DTGFX_USE_WEBP_ENCODE=ON
 node xcode-gen  ./source -p simulator -a arm64
 node xcode-gen  ./source -p ios -a arm64 -w
 ```
 
-## ms-build
+### ms-build
 
-### Description
 Used to build Visual Studio projects, this tool automatically detects the location of the Visual Studio installation.
 
-### Syntax:   
+#### Syntax:   
 ```sh
 node ms-build [-a x86|x64] [msbuild options]
 ```
 
-### Options
+#### Options
 - `--arch`, `-a`: Specify the arch of the Command Prompt for VS. Supported archs: `["x86", "x64"]`. Default is x64.
 - `--help`, `-h`: Print help message.
  
 Any other options will be passed to `msbuild`.
 
-### Examples
+#### Examples
 ```sh
 node ms-build -a x64 win/Win32Demo.sln /p:Configuration=Release /p:Platform=x64
 ```
 
-# vendor.cmake
+## CMake Integration
 
 The `vendor.cmake` file in the root directory includes a set of CMake functions to help build vendor libraries. It also
 automatically runs the `depsync` tool to download dependencies during the build process.
