@@ -256,3 +256,16 @@ Any other options will be passed to `msbuild`.
 ```sh
 node ms-build -a x64 win/Win32Demo.sln /p:Configuration=Release /p:Platform=x64
 ```
+
+# vendor.cmake
+
+There is a `vendor.cmake` file in the root directory that provides a set of CMake functions to help build vendor libraries.
+You can include it in your CMake project like this:
+
+```cmake
+include(vendor_tools/vendor.cmake)
+```
+
+Then, use the functions `add_vendor_target`, `merge_libraries_into`, and `find_vendor_libraries` from `vendor.cmake` to 
+build your vendor libraries. For more examples, check out the [CMakeLists.txt](https://github.com/Tencent/tgfx/blob/main/CMakeLists.txt) 
+file in the tgfx project.
