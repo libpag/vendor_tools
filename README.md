@@ -259,7 +259,9 @@ node ms-build -a x64 win/Win32Demo.sln /p:Configuration=Release /p:Platform=x64
 
 # vendor.cmake
 
-There is a `vendor.cmake` file in the root directory that provides a set of CMake functions to help build vendor libraries.
+The `vendor.cmake` file in the root directory includes a set of CMake functions to help build vendor libraries. It also
+automatically runs the `depsync` tool to download dependencies during the build process.
+
 You can include it in your CMake project like this:
 
 ```cmake
