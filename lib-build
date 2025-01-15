@@ -14,13 +14,13 @@ const optionDeclarations = [
         name: "source",
         shortName: "s",
         type: "string",
-        description: "Specify the project source path."
+        description: "Specify the source path of `CMakeLists.txt`. Default is the current working directory."
     },
     {
         name: "output",
         shortName: "o",
         type: "string",
-        description: "Specify the library output path."
+        description: "Specifies the output path. Default is [source]/out."
     },
     {
         name: "platform",
@@ -50,7 +50,7 @@ const optionDeclarations = [
         name: "xcframework",
         shortName: "x",
         type: "boolean",
-        description: "Merges all arches of the output libraries into one xcframework if current platform supports it."
+        description: "Merges all arches of the output libraries into one xcframework if the current platform supports it."
     },
     {
         name: "native",
@@ -68,10 +68,10 @@ const optionDeclarations = [
 
 function printHelp(cmd) {
     let output = "";
-    output += "Syntax:   " + cmd + " [-Dcmake_variable=value]... [-Dcmake_variable=value] [options]\n";
-    output += "Examples: " + cmd + " -p ios -o ./out/ios\n";
-    output += "Examples: " + cmd + " --debug\n";
-    output += "Examples: " + cmd + " -DTGFX_USE_WEBP_ENCODE=ON -p mac\n";
+    output += "Syntax:   " + cmd + " [cmakeTarget] [options] [-Dcmake_variable=value]... [-Dcmake_variable=value]\n";
+    output += "Examples: " + cmd + " pag -p ios -o ./out/ios\n";
+    output += "Examples: " + cmd + " pag --debug\n";
+    output += "Examples: " + cmd + " pag -DTGFX_USE_WEBP_ENCODE=ON -p mac\n";
     output += CommandLine.printOptions(optionDeclarations);
     Utils.log(output);
 }

@@ -9,7 +9,7 @@ const optionDeclarations = [
         name: "source",
         shortName: "s",
         type: "string",
-        description: "Specify the project source path. Default is current working directory."
+        description: "Specify the source path of `CMakeLists.txt`. Default is the current working directory."
     },
     {
         name: "output",
@@ -39,7 +39,7 @@ const optionDeclarations = [
         name: "native",
         shortName: "n",
         type: "boolean",
-        description: "Use the native generator with cmake to build the library if current platform supports it."
+        description: "Use the native generator with cmake to build the library if the current platform supports it."
     },
     {
         name: "debug",
@@ -57,13 +57,19 @@ const optionDeclarations = [
         shortName: "v",
         type: "boolean",
         description: "Prints message in verbose mode."
-    }
+    },
+    {
+        name: "help",
+        shortName: "h",
+        type: "boolean",
+        description: "Print help message."
+    },
 ];
 
 
 function printHelp(cmd) {
     let output = "";
-    output += "Syntax:   " + cmd + " [cmakeTarget] [cmakeTarget]... [options]\n";
+    output += "Syntax:   " + cmd + " [cmakeTarget] [cmakeTarget]... [options] [-Dcmake_variable=value]... [-Dcmake_variable=value]\n";
     output += "Examples: " + cmd + " pag -p ios -o ./out/ios\n";
     output += "Examples: " + cmd + " pag pag-ss --debug\n";
     output += "Examples: " + cmd + " pag -DTGFX_USE_WEBP_ENCODE=ON -p mac --verbose\n";

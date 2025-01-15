@@ -6,12 +6,6 @@ const path = require("path");
 
 const optionDeclarations = [
     {
-        name: "help",
-        shortName: "h",
-        type: "boolean",
-        description: "Prints help message."
-    },
-    {
         name: "platform",
         shortName: "p",
         type: "string",
@@ -40,6 +34,12 @@ const optionDeclarations = [
         shortName: "v",
         type: "boolean",
         description: "Prints message in verbose mode."
+    },
+    {
+        name: "help",
+        shortName: "h",
+        type: "boolean",
+        description: "Print help message."
     }
 ];
 

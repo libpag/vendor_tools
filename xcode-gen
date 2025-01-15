@@ -12,13 +12,13 @@ const optionDeclarations = [
         name: "source",
         shortName: "s",
         type: "string",
-        description: "Specify the root of the cmake project. Default is current working directory."
+        description: "Specify the root of the cmake project. Default is the current working directory."
     },
     {
         name: "output",
         shortName: "o",
         type: "string",
-        description: "Specify the output path of the generated project. Default is current working directory."
+        description: "Specify the output path of the generated project. Default is the current working directory."
     },
     {
         name: "platform",

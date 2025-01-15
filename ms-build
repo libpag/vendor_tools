@@ -9,7 +9,7 @@ const optionDeclarations = [
         name: "arch",
         shortName: "a",
         type: "string",
-        description: "Specify the arch of the Command Prompt for VS. Supported archs: [\"x86\", \"x64\"]."
+        description: "Specify the arch of the Command Prompt for VS. Supported archs: [\"x86\", \"x64\"]. Default is x64."
     },
     {
         name: "help",
