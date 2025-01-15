@@ -205,6 +205,7 @@ elseif(NOT DEFINED PLATFORM)
 endif ()
 
 # Safeguard that the platform value is set and is one of the supported values
+string(TOUPPER ${PLATFORM} PLATFORM)
 list(FIND _supported_platforms ${PLATFORM} contains_PLATFORM)
 if("${contains_PLATFORM}" EQUAL "-1")
   string(REPLACE ";"  "\n * " _supported_platforms_formatted "${_supported_platforms}")
