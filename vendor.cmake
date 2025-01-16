@@ -75,12 +75,14 @@ endif ()
 
 # Sets the default build type to release.
 if (NOT CMAKE_BUILD_TYPE)
-    if (CMAKE_CONFIGURATION_TYPES)
+    list(LENGTH CMAKE_CONFIGURATION_TYPES CONFIG_TYPES_LENGTH)
+    if (CONFIG_TYPES_LENGTH EQUAL 1)
         list(GET CMAKE_CONFIGURATION_TYPES 0 CMAKE_BUILD_TYPE)
     else ()
         set(CMAKE_BUILD_TYPE "Release")
     endif ()
 endif ()
+message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 if (WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(VENDOR_DEBUG ON)
