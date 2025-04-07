@@ -286,6 +286,10 @@ endif()
 # Store the DEPLOYMENT_TARGET in the cache
 set(DEPLOYMENT_TARGET "${DEPLOYMENT_TARGET}" CACHE INTERNAL "")
 
+if(CMAKE_GENERATOR MATCHES "Xcode")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET ${DEPLOYMENT_TARGET} CACHE STRING "Minimum OS X deployment version" FORCE)
+endif ()
+
 # Handle the case where we are targeting iOS and a version above 10.3.4 (32-bit support dropped officially)
 if(PLATFORM STREQUAL "OS" AND DEPLOYMENT_TARGET VERSION_GREATER_EQUAL 10.3.4)
   set(PLATFORM "OS64")
