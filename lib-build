@@ -238,11 +238,7 @@ if (!options.debug) {
     options.strip = libraryTool.stripAndGenerateSymbolFile !== undefined;
 }
 
-// Acquire a lock for this output directory to avoid concurrent builds interfering with each other.
-const lockFilePath = path.join(options.output, '.build.lock');
-const lockFd = Utils.acquireLock(lockFilePath);
-
-try {
+function performBuild(targetName, buildType, platform, options, cmakeArgs, libraryTool) {
     let startMessage = "========================== build " + targetName + "-" + platform.name + "-" +
         buildType + " start ==========================";
     let startTime = performance.now();
@@ -296,6 +292,9 @@ try {
         Utils.log("========================== build " + targetName + "-" + platform.name + "-" +
             buildType + " end (" + costTimeString + ") ==========================");
     }
-} finally {
-    Utils.releaseLock(lockFilePath, lockFd);
 }
+
+// Use the build lock wrapper to avoid concurrent builds interfering with each other.
+Utils.withBuildLock(options.output, function() {
+    performBuild(targetName, buildType, platform, options, cmakeArgs, libraryTool);
+});
