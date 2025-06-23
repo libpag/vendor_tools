@@ -238,56 +238,63 @@ if (!options.debug) {
     options.strip = libraryTool.stripAndGenerateSymbolFile !== undefined;
 }
 
-let startMessage = "========================== build " + targetName + "-" + platform.name + "-" +
-    buildType + " start ==========================";
-let startTime = performance.now();
-startMessage += "\n[Source] " + options.source;
-startMessage += "\n[Output] " + options.output;
-let versionHash = getHash(options, cmakeArgs, platform);
-let xcHashFile = path.join(options.output, "." + targetName + ".xcframework.md5");
-let currentXCHash = "";
-if (options.xcframework) {
-    currentXCHash = Utils.readFile(xcHashFile);
-    if (versionHash === currentXCHash) {
-        return;
+function performBuild(targetName, buildType, platform, options, cmakeArgs, libraryTool) {
+    let startMessage = "========================== build " + targetName + "-" + platform.name + "-" +
+        buildType + " start ==========================";
+    let startTime = performance.now();
+    startMessage += "\n[Source] " + options.source;
+    startMessage += "\n[Output] " + options.output;
+    let versionHash = getHash(options, cmakeArgs, platform);
+    let xcHashFile = path.join(options.output, "." + targetName + ".xcframework.md5");
+    let currentXCHash = "";
+    if (options.xcframework) {
+        currentXCHash = Utils.readFile(xcHashFile);
+        if (versionHash === currentXCHash) {
+            return;
+        }
+        Utils.deletePath(xcHashFile);
     }
-    Utils.deletePath(xcHashFile);
-}
-if (!options.incremental) {
-    Utils.deletePath(path.join(options.output, "build-" + targetName));
-}
-let archs = platform.archs;
-for (let arch of archs) {
-    platform.archs = [arch];
-    if (buildArch(options, cmakeArgs, platform, libraryTool, versionHash, startMessage)) {
-        startMessage = "";
+    if (!options.incremental) {
+        Utils.deletePath(path.join(options.output, "build-" + targetName));
     }
-}
-platform.archs = archs;
+    let archs = platform.archs;
+    for (let arch of archs) {
+        platform.archs = [arch];
+        if (buildArch(options, cmakeArgs, platform, libraryTool, versionHash, startMessage)) {
+            startMessage = "";
+        }
+    }
+    platform.archs = archs;
 
-if (options.xcframework) {
-    if (startMessage) {
-        Utils.log(startMessage);
-        startMessage = "";
+    if (options.xcframework) {
+        if (startMessage) {
+            Utils.log(startMessage);
+            startMessage = "";
+        }
+        currentXCHash = versionHash;
+        libraryTool.createXCFramework(options.output, options.output, false, function (library) {
+            let ext = path.extname(library);
+            let name = path.parse(library).name;
+            return ext && name.indexOf(targetName) !== -1;
+        });
+        if (currentXCHash) {
+            Utils.writeFile(xcHashFile, currentXCHash);
+        }
     }
-    currentXCHash = versionHash;
-    libraryTool.createXCFramework(options.output, options.output, false, function (library) {
-        let ext = path.extname(library);
-        let name = path.parse(library).name;
-        return ext && name.indexOf(targetName) !== -1;
-    });
-    if (currentXCHash) {
-        Utils.writeFile(xcHashFile, currentXCHash);
+
+    if (!options.incremental) {
+        Utils.deletePath(path.join(options.output, "build-" + targetName));
+    }
+
+    let costTime = performance.now() - startTime;
+    let costTimeString = Utils.formatTime(costTime);
+    if (!startMessage) {
+        Utils.log("========================== build " + targetName + "-" + platform.name + "-" +
+            buildType + " end (" + costTimeString + ") ==========================");
     }
 }
 
-if (!options.incremental) {
-    Utils.deletePath(path.join(options.output, "build-" + targetName));
-}
-
-let costTime = performance.now() - startTime;
-let costTimeString = Utils.formatTime(costTime);
-if (!startMessage) {
-    Utils.log("========================== build " + targetName + "-" + platform.name + "-" +
-        buildType + " end (" + costTimeString + ") ==========================");
-}
+// Use the build lock wrapper to avoid concurrent builds interfering with each other.
+Utils.withBuildLock(options.output, function() {
+    performBuild(targetName, buildType, platform, options, cmakeArgs, libraryTool);
+});
