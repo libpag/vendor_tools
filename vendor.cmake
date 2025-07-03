@@ -235,8 +235,40 @@ function(find_vendor_libraries target)
 endfunction()
 
 # Synchronizes the third-party dependencies of current platform.
+message(STATUS "[DEPSYNC] Starting dependency synchronization for platform: ${PLATFORM}")
+
+# Enhanced dependency synchronization with error handling
 if (WIN32)
-    execute_process(COMMAND cmd /C depsync ${PLATFORM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} ENCODING NONE)
+    set(DEPSYNC_CMD cmd /C depsync ${PLATFORM})
 else ()
-    execute_process(COMMAND depsync ${PLATFORM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    set(DEPSYNC_CMD depsync ${PLATFORM})
 endif ()
+
+message(STATUS "[DEPSYNC] Running command: ${DEPSYNC_CMD}")
+message(STATUS "[DEPSYNC] Working directory: ${CMAKE_CURRENT_SOURCE_DIR}")
+
+execute_process(
+    COMMAND ${DEPSYNC_CMD}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE DEPSYNC_RESULT
+    OUTPUT_VARIABLE DEPSYNC_OUTPUT
+    ERROR_VARIABLE DEPSYNC_ERROR
+    ENCODING NONE
+)
+
+if(NOT DEPSYNC_RESULT EQUAL 0)
+    message(WARNING "[DEPSYNC] Dependency synchronization failed with exit code: ${DEPSYNC_RESULT}")
+    if(DEPSYNC_OUTPUT)
+        message(STATUS "[DEPSYNC] Output: ${DEPSYNC_OUTPUT}")
+    endif()
+    if(DEPSYNC_ERROR)
+        message(WARNING "[DEPSYNC] Error: ${DEPSYNC_ERROR}")
+    endif()
+    message(WARNING "[DEPSYNC] This may cause build issues if dependencies are missing")
+    message(WARNING "[DEPSYNC] Please check your network connection and try again")
+else()
+    message(STATUS "[DEPSYNC] Dependency synchronization completed successfully")
+    if(DEPSYNC_OUTPUT)
+        message(STATUS "[DEPSYNC] Output: ${DEPSYNC_OUTPUT}")
+    endif()
+endif()
