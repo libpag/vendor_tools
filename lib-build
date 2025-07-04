@@ -107,11 +107,13 @@ function getHash(options, cmakeArgs, platform) {
             commit = Utils.execSafe("git rev-parse HEAD", sourcePath).trim();
         }
         list.push(commit);
+        const gitRoot = Utils.execSafe("git rev-parse --show-toplevel", sourcePath).trim();
         let diff = Utils.execSafe("git diff --name-only HEAD", sourcePath);
         if (diff) {
             let files = diff.split("\n");
             for (let file of files) {
-                let filePath = path.resolve(sourcePath, file.trim());
+                if (!file) { continue; }
+                let filePath = path.resolve(gitRoot, file.trim());
                 xcHashFiles.push(filePath);
             }
         }
