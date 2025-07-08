@@ -89,12 +89,26 @@ function getHash(options, cmakeArgs, platform) {
     let sourcePath = options.source;
     let targetName = options.targets[0];
     let hashConfigFile = path.resolve(sourcePath, targetName + ".hash");
+    let watchConfigFile = path.resolve(sourcePath, "cmake.watch");
     let xcHashFiles = [];
+
+    let configFile = null;
     if (fs.existsSync(hashConfigFile)) {
-        let hasConfig = Utils.readFile(hashConfigFile);
-        let files = hasConfig.split("\n");
+        configFile = hashConfigFile;
+    } else if (fs.existsSync(watchConfigFile)) {
+        configFile = watchConfigFile;
+    }
+
+    if (configFile) {
+        let config = Utils.readFile(configFile);
+        let files = config.split("\n");
         for (let file of files) {
-            let filePath = path.resolve(sourcePath, file.trim());
+            let trimmed = file.trim();
+            if (!trimmed) {
+                // Skip empty lines to avoid hashing the entire source directory and rebuild every time.
+                continue;
+            }
+            let filePath = path.resolve(sourcePath, trimmed);
             let fileList = Utils.findFiles(filePath);
             xcHashFiles = xcHashFiles.concat(fileList);
         }
