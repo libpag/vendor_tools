@@ -126,7 +126,9 @@ function getHash(options, cmakeArgs, platform) {
         if (diff) {
             let files = diff.split("\n");
             for (let file of files) {
-                if (!file) { continue; }
+                if (!file) {
+                    continue;
+                }
                 let filePath = path.resolve(gitRoot, file.trim());
                 xcHashFiles.push(filePath);
             }
