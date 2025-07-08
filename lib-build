@@ -89,16 +89,16 @@ function getHash(options, cmakeArgs, platform) {
     let sourcePath = options.source;
     let targetName = options.targets[0];
     let hashConfigFile = path.resolve(sourcePath, targetName + ".hash");
-    let watchConfigFile = path.resolve(sourcePath, targetName + ".watch");
+    let watchConfigFile = path.resolve(sourcePath, "cmake.watch");
     let xcHashFiles = [];
-    
+
     let configFile = null;
     if (fs.existsSync(hashConfigFile)) {
         configFile = hashConfigFile;
     } else if (fs.existsSync(watchConfigFile)) {
         configFile = watchConfigFile;
     }
-    
+
     if (configFile) {
         let config = Utils.readFile(configFile);
         let files = config.split("\n");
