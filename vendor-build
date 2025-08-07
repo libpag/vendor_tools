@@ -36,6 +36,11 @@ const optionDeclarations = [
         description: "Merges all arches of the output libraries into one xcframework if current platform supports it. Ignored if --output is not specified."
     },
     {
+        name: "headers",
+        type: "string",
+        description: "Only valid when xcframework is enabled. Defaults is [source]/include."
+    },
+    {
         name: "debug",
         shortName: "d",
         type: "boolean",
@@ -83,6 +88,11 @@ if (!options.debug) {
 if (options.xcframework) {
     delete options.arch;
 }
+
+if ((!options.headers || options.headers.length == 0) && (options.xcframework || false)) {
+    options.headers = path.join(options.source, "include");
+}
+
 let execPath = path.resolve(process.argv[1]);
 let isCustomBuild = execPath !== __filename;
 if (!options.source) {
@@ -98,5 +108,6 @@ let platform = Platform.Create(options.platform, options.debug, options.verbose)
 if (options.arch) {
     platform.archs = [options.arch.toLowerCase()];
 }
+let headerPath = path.resolve(options.headers);
 let vendor = new Vendor(configFile, platform);
-vendor.buildAll(options.targets, options.output, options.xcframework);
+vendor.buildAll(options.targets, headerPath, options.output, options.xcframework);

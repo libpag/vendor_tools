@@ -18,6 +18,11 @@ const optionDeclarations = [
         description: "Merges all archs in the specified library path into one xcframework if current platform supports it."
     },
     {
+        name: "headers",
+        type: "string",
+        description: "Only valid when xcframework is enabled. Defaults is [source]/include."
+    },
+    {
         name: "arch",
         shortName: "a",
         type: "string",
@@ -61,6 +66,11 @@ if (options.help) {
     }
     return;
 }
+
+if ((!options.headers || options.headers.length == 0) && (options.xcframework || false)) {
+    options.headers = path.join(options.source, "include");
+}
+
 let platform = Platform.Create(options.platform, false, options.verbose);
 if (!options.arch) {
     options.arch = platform.archs[0];
@@ -76,7 +86,8 @@ if (options.xcframework) {
         outputPath = path.resolve(options.output, platform.name);
         removeOrigins = false;
     }
-    libraryTool.createXCFramework(libraryPath, outputPath, removeOrigins);
+    let headerPath = path.resolve(options.headers);
+    libraryTool.createXCFramework(libraryPath, headerPath, outputPath, removeOrigins);
 } else {
     libraryTool.mergeLibraries(options.targets, options.output, options.arch);
 }

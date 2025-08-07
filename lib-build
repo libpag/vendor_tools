@@ -53,6 +53,11 @@ const optionDeclarations = [
         description: "Merges all arches of the output libraries into one xcframework if the current platform supports it."
     },
     {
+        name: "headers",
+        type: "string",
+        description: "Only valid when xcframework is enabled. Defaults is [source]/include."
+    },
+    {
         name: "native",
         shortName: "n",
         type: "boolean",
@@ -209,6 +214,11 @@ if (!options.source) {
 } else {
     options.source = path.resolve(options.source);
 }
+
+if ((!options.headers || options.headers.length == 0) && (options.xcframework || false)) {
+    options.headers = path.join(options.source, "include");
+}
+
 if ((!options.targets || options.targets.length === 0) && isCustomBuild) {
     let basename = path.basename(process.argv[1]);
     let target = "";
@@ -290,7 +300,8 @@ function performBuild(targetName, buildType, platform, options, cmakeArgs, libra
             startMessage = "";
         }
         currentXCHash = versionHash;
-        libraryTool.createXCFramework(options.output, options.output, false, function (library) {
+        let headerPath = path.resolve(options.headers);
+        libraryTool.createXCFramework(options.output, headerPath, options.output, false, function (library) {
             let ext = path.extname(library);
             let name = path.parse(library).name;
             return ext && name.indexOf(targetName) !== -1;
