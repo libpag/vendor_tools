@@ -235,7 +235,7 @@ function(find_vendor_libraries target)
 endfunction()
 
 # Synchronizes the third-party dependencies of current platform.
-if (NOT DEFINED TGFX_USE_VCPKG OR NOT TGFX_USE_VCPKG)
+if (NOT TGFX_USE_VCPKG)
     if (WIN32)
         execute_process(COMMAND cmd /C depsync ${PLATFORM} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} ENCODING NONE)
     else ()
