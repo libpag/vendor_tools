@@ -6,8 +6,11 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 if (MSVC)
     message("MSVC build")
     # MP: # multi-processor compilation
-    # Z7: pdb Z7 format
-    set(MSVC_BUILD_FLAGS /MP /Z7)
+    set(MSVC_BUILD_FLAGS /MP)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        # Z7: pdb Z7 format
+        list(APPEND MSVC_BUILD_FLAGS /Z7)
+    endif()
     add_compile_options("$<$<COMPILE_LANGUAGE:C>:${MSVC_BUILD_FLAGS}>")
     add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${MSVC_BUILD_FLAGS}>")
 endif ()
