@@ -88,7 +88,7 @@
 #    not be required).
 #
 # DEPLOYMENT_TARGET: Minimum SDK version to target. Default 9.0 on watchOS, 12.0 on macOS, 15.0 on
-# tvOS+iOS, 1.0 on visionOS and 13.1 on Mac Catalyst
+# tvOS+iOS, 1.0 on visionOS and 15.0 on Mac Catalyst
 #
 # NAMED_LANGUAGE_SUPPORT:
 #    ON (default) = Will require "enable_language(OBJC) and/or enable_language(OBJCXX)" for full OBJC|OBJCXX support
@@ -276,15 +276,16 @@ if(NOT DEFINED DEPLOYMENT_TARGET)
     # Unless specified, SDK version 12.0 (Monterey) is used by default as minimum target version for universal builds.
     set(DEPLOYMENT_TARGET "12.0")
   elseif(PLATFORM STREQUAL "MAC_CATALYST" OR PLATFORM STREQUAL "MAC_CATALYST_ARM64")
-    # Unless specified, SDK version 13.0 is used by default as the minimum target version (mac catalyst minimum requirement).
-    set(DEPLOYMENT_TARGET "13.1")
+    # Unless specified, SDK version 15.0 is used by default as the minimum target version. Mac
+    # Catalyst only needs 13.1, but libc++ rejects anything below 15.0 on current toolchains too.
+    set(DEPLOYMENT_TARGET "15.0")
   else()
     # Unless specified, SDK version 15.0 is used by default as the minimum target version (iOS, tvOS).
     set(DEPLOYMENT_TARGET "15.0")
   endif()
   message(STATUS "[DEFAULTS] Using the default min-version since DEPLOYMENT_TARGET not provided!")
-elseif(DEFINED DEPLOYMENT_TARGET AND PLATFORM MATCHES "^MAC_CATALYST" AND ${DEPLOYMENT_TARGET} VERSION_LESS "13.1")
-  message(FATAL_ERROR "Mac Catalyst builds requires a minimum deployment target of 13.1!")
+elseif(DEFINED DEPLOYMENT_TARGET AND PLATFORM MATCHES "^MAC_CATALYST" AND ${DEPLOYMENT_TARGET} VERSION_LESS "15.0")
+  message(FATAL_ERROR "Mac Catalyst builds requires a minimum deployment target of 15.0!")
 endif()
 
 # Store the DEPLOYMENT_TARGET in the cache
