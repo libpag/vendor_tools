@@ -87,8 +87,8 @@
 #    CMAKE_OSX_SYSROOT, but can also be manually specified (although this should
 #    not be required).
 #
-# DEPLOYMENT_TARGET: Minimum SDK version to target. Default 4.0 on watchOS, 10.15 on macOS(x64), 11.0 on macOS(arm64)
-# and 9.0 on tvOS+iOS
+# DEPLOYMENT_TARGET: Minimum SDK version to target. Default 9.0 on watchOS, 12.0 on macOS, 15.0 on
+# tvOS+iOS, 1.0 on visionOS and 15.0 on Mac Catalyst
 #
 # NAMED_LANGUAGE_SUPPORT:
 #    ON (default) = Will require "enable_language(OBJC) and/or enable_language(OBJCXX)" for full OBJC|OBJCXX support
@@ -255,32 +255,38 @@ set(NAMED_LANGUAGE_SUPPORT_INT ${NAMED_LANGUAGE_SUPPORT} CACHE BOOL
         "Whether or not to enable explicit named language support" FORCE)
 
 # Specify the minimum version of the deployment target.
+# The historical defaults are no longer usable on recent toolchains: libc++ emits a warning below
+# macOS 11.0 / iOS 15.0 / watchOS 8.0 (fatal for anyone building with -Werror), and current SDKs
+# refuse to build below macOS 12.0 / iOS 15.0 / watchOS 9.0 outright. The defaults below pick the
+# lower bound that every supported toolchain still accepts.
 if(NOT DEFINED DEPLOYMENT_TARGET)
   if (PLATFORM MATCHES "WATCHOS")
-    # Unless specified, SDK version 4.0 is used by default as minimum target version (watchOS).
-    set(DEPLOYMENT_TARGET "4.0")
+    # Unless specified, SDK version 9.0 is used by default as minimum target version (watchOS).
+    set(DEPLOYMENT_TARGET "9.0")
   elseif(PLATFORM STREQUAL "MAC")
-    # Unless specified, SDK version 10.15 (Catalina) is used by default as the minimum target version (macos).
-    set(DEPLOYMENT_TARGET "10.15")
+    # Unless specified, SDK version 12.0 (Monterey) is used by default as the minimum target version (macos).
+    set(DEPLOYMENT_TARGET "12.0")
   elseif(PLATFORM STREQUAL "VISIONOS" OR PLATFORM STREQUAL "SIMULATOR_VISIONOS" OR PLATFORM STREQUAL "SIMULATOR64_VISIONOS")
     # Unless specified, SDK version 1.0 is used by default as minimum target version (visionOS).
     set(DEPLOYMENT_TARGET "1.0")
   elseif(PLATFORM STREQUAL "MAC_ARM64")
-    # Unless specified, SDK version 11.0 (Big Sur) is used by default as the minimum target version (macOS on arm).
-    set(DEPLOYMENT_TARGET "11.0")
+    # Unless specified, SDK version 12.0 (Monterey) is used by default as the minimum target version (macOS on arm).
+    set(DEPLOYMENT_TARGET "12.0")
   elseif(PLATFORM STREQUAL "MAC_UNIVERSAL")
-    # Unless specified, SDK version 11.0 (Big Sur) is used by default as minimum target version for universal builds.
-    set(DEPLOYMENT_TARGET "11.0")
+    # Unless specified, SDK version 12.0 (Monterey) is used by default as minimum target version for universal builds.
+    set(DEPLOYMENT_TARGET "12.0")
   elseif(PLATFORM STREQUAL "MAC_CATALYST" OR PLATFORM STREQUAL "MAC_CATALYST_ARM64")
-    # Unless specified, SDK version 13.0 is used by default as the minimum target version (mac catalyst minimum requirement).
-    set(DEPLOYMENT_TARGET "13.1")
+    # Unless specified, SDK version 15.0 is used by default as the minimum target version, matching
+    # iOS: a macabi target only defines __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ and never the
+    # macOS one, so Catalyst sits on the iOS axis rather than the macOS one.
+    set(DEPLOYMENT_TARGET "15.0")
   else()
-    # Unless specified, SDK version 9.0 is used by default as the minimum target version (iOS, tvOS).
-    set(DEPLOYMENT_TARGET "9.0")
+    # Unless specified, SDK version 15.0 is used by default as the minimum target version (iOS, tvOS).
+    set(DEPLOYMENT_TARGET "15.0")
   endif()
   message(STATUS "[DEFAULTS] Using the default min-version since DEPLOYMENT_TARGET not provided!")
-elseif(DEFINED DEPLOYMENT_TARGET AND PLATFORM MATCHES "^MAC_CATALYST" AND ${DEPLOYMENT_TARGET} VERSION_LESS "13.1")
-  message(FATAL_ERROR "Mac Catalyst builds requires a minimum deployment target of 13.1!")
+elseif(DEFINED DEPLOYMENT_TARGET AND PLATFORM MATCHES "^MAC_CATALYST" AND ${DEPLOYMENT_TARGET} VERSION_LESS "15.0")
+  message(FATAL_ERROR "Mac Catalyst builds requires a minimum deployment target of 15.0!")
 endif()
 
 # Store the DEPLOYMENT_TARGET in the cache
