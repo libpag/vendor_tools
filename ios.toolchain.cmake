@@ -276,8 +276,9 @@ if(NOT DEFINED DEPLOYMENT_TARGET)
     # Unless specified, SDK version 12.0 (Monterey) is used by default as minimum target version for universal builds.
     set(DEPLOYMENT_TARGET "12.0")
   elseif(PLATFORM STREQUAL "MAC_CATALYST" OR PLATFORM STREQUAL "MAC_CATALYST_ARM64")
-    # Unless specified, SDK version 15.0 is used by default as the minimum target version. Mac
-    # Catalyst only needs 13.1, but libc++ rejects anything below 15.0 on current toolchains too.
+    # Unless specified, SDK version 15.0 is used by default as the minimum target version, matching
+    # iOS: a macabi target only defines __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ and never the
+    # macOS one, so Catalyst sits on the iOS axis rather than the macOS one.
     set(DEPLOYMENT_TARGET "15.0")
   else()
     # Unless specified, SDK version 15.0 is used by default as the minimum target version (iOS, tvOS).
